@@ -72,4 +72,14 @@ export class SupabaseService {
     if (error) return null;
     return data as Profile;
   }
+
+  from(table: string) {
+    return this.supabase.from(table);
+  }
+
+  get storage() {
+    return this.supabase.storage;
+
+
+  }
 }

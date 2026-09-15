@@ -1,2 +1,61 @@
-<h1>Página principal</h1>
-<p>Acá van las 3 películas más vendidas, el buscador por género, los combos y la sección de próximamente.</p>
+<div class="main-container">
+  <h1>Cartelera</h1>
+
+  <section class="seccion">
+    <h2>Las 3 más vendidas</h2>
+    <p class="placeholder">Próximamente...</p>
+  </section>
+
+  <section class="seccion">
+    <h2>Listado de películas</h2>
+
+    <div class="filtros">
+      <label>
+        Filtrar por género:
+        <select [(ngModel)]="generoFiltro" (ngModelChange)="generoFiltro.set($event)">
+          <option value="">Todos</option>
+          @for (genero of generosDisponibles(); track genero) {
+            <option [value]="genero">{{ genero }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (cargando()) {
+      <p>Cargando películas...</p>
+    } @else if (peliculasFiltradas().length === 0) {
+      <p>No hay películas para este género.</p>
+    } @else {
+      <div class="grilla-peliculas">
+        @for (pelicula of peliculasFiltradas(); track pelicula.id) {
+          <div class="pelicula-card">
+            <img
+              [src]="getImagenUrl(pelicula.imagen)"
+              [alt]="pelicula.nombre"
+              class="pelicula-imagen"
+            />
+            <div class="pelicula-info">
+              <h3>{{ pelicula.nombre }}</h3>
+              <p class="generos">{{ pelicula.generos.join(', ') }}</p>
+              <p class="duracion">{{ pelicula.duracion }} min</p>
+              <p class="restriccion">{{ pelicula.restriccion_edad }}</p>
+              <p class="puntuacion">★ {{ pelicula.puntuacion_promedio }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  
+  <section class="seccion">
+    <h2>Combos especiales</h2>
+    <p class="placeholder">Próximamente...</p>
+  </section>
+
+
+  <section class="seccion">
+    <h2>Próximamente</h2>
+    <p class="placeholder">Próximamente...</p>
+  </section>
+</div>
