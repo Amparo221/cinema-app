@@ -1,0 +1,14 @@
+<nav class="sidebar">
+  <h2>Cine</h2>
+  <ul>
+    @for (item of items; track item.ruta) {
+      <li>
+        <a [routerLink]="item.ruta" routerLinkActive="activo">{{ item.label }}</a>
+      </li>
+    }
+  </ul>
+
+  @if (rol !== 'anonimo') {
+    <button class="logout" (click)="cerrarSesion()">Cerrar sesión</button>
+  }
+</nav>

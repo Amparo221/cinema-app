@@ -1,0 +1,55 @@
+<div class="form-container">
+  <h1>Registrarse</h1>
+
+  <form (ngSubmit)="onSubmit()">
+    <label>
+      Email
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </label>
+
+    <label>
+      Contraseña
+      <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
+    </label>
+
+    <label>
+      Nombre
+      <input type="text" [(ngModel)]="nombre" name="nombre" required />
+    </label>
+
+    <label>
+      Apellido
+      <input type="text" [(ngModel)]="apellido" name="apellido" required />
+    </label>
+
+    <label>
+      Fecha de nacimiento
+      <input type="date" [(ngModel)]="fecha_nacimiento" name="fecha_nacimiento" required />
+    </label>
+
+    <label>
+      Tipo de sangre
+      <input type="text" [(ngModel)]="tipo_sangre" name="tipo_sangre" required />
+    </label>
+
+    <label>
+      Color de ojos
+      <input type="text" [(ngModel)]="color_ojos" name="color_ojos" required />
+    </label>
+
+    <label>
+      Días de vacaciones por año
+      <input type="number" [(ngModel)]="dias_vacaciones" name="dias_vacaciones" required min="0" />
+    </label>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="cargando()">
+      {{ cargando() ? 'Registrando...' : 'Registrarse' }}
+    </button>
+  </form>
+
+  <p>¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a></p>
+</div>
