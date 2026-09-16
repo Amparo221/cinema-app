@@ -1,0 +1,46 @@
+<div class="mapa-container">
+
+  <div class="filas">
+    @for (fila of filas; track fila.letra) {
+      <div class="fila">
+        @for (butaca of fila.butacas; track butaca.codigo) {
+          <button
+            type="button"
+            class="butaca"
+            [class.normal]="butaca.tipo === 'normal'"
+            [class.accesible]="butaca.tipo === 'accesible'"
+            [class.vip]="butaca.tipo === 'vip'"
+            [class.seleccionada]="estaSeleccionada(butaca.codigo)"
+            [class.ocupada]="estaOcupada(butaca.codigo)"
+            [disabled]="estaOcupada(butaca.codigo)"
+            [attr.aria-label]="'Butaca ' + butaca.codigo + ' - ' + butaca.tipo"
+            [style.grid-column]="butaca.columna"
+            (click)="toggleButaca(butaca)"
+          >
+            <span class="codigo">{{ butaca.codigo }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="leyenda">
+    <div class="leyenda-item">
+      <span class="muestra normal"></span> Normal
+    </div>
+    <div class="leyenda-item">
+      <span class="muestra vip"></span> VIP
+    </div>
+    <div class="leyenda-item">
+      <span class="muestra accesible"></span> Accesible
+    </div>
+    <div class="leyenda-item">
+      <span class="muestra seleccionada"></span> Seleccionada
+    </div>
+    <div class="leyenda-item">
+      <span class="muestra ocupada"></span> Ocupada
+    </div>
+  </div>
+
+  
+</div>

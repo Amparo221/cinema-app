@@ -1,0 +1,113 @@
+.mapa-container {
+  background: #1c1c1c;
+  padding: 2rem;
+  border-radius: 12px;
+  color: #fff;
+  overflow-x: auto;
+}
+
+
+.filas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: repeat(30, 32px);
+  gap: 4px;
+  align-items: center;
+}
+
+.butaca {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.55rem;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.1s, background 0.15s;
+  padding: 0;
+}
+
+.butaca:hover:not(.ocupada) {
+  transform: scale(1.15);
+  z-index: 2;
+}
+
+.butaca .codigo {
+  pointer-events: none;
+}
+
+
+
+.butaca.normal {
+  background: #4a4a4a;
+}
+
+.butaca.normal:hover:not(.ocupada) {
+  background: #6a6a6a;
+}
+
+.butaca.vip {
+  background: #b8860b;
+}
+
+.butaca.vip:hover:not(.ocupada) {
+  background: #daa520;
+}
+
+.butaca.accesible {
+  background: #1565c0;
+}
+
+.butaca.accesible:hover:not(.ocupada) {
+  background: #1976d2;
+}
+
+.butaca.seleccionada {
+  background: #2e7d32 !important;
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.8);
+}
+
+.butaca.ocupada {
+  background: #2a2a2a;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.leyenda {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.muestra {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.muestra.normal { background: #4a4a4a; }
+.muestra.vip { background: #b8860b; }
+.muestra.accesible { background: #1565c0; }
+.muestra.seleccionada { background: #2e7d32; }
+.muestra.ocupada { background: #2a2a2a; opacity: 0.4; }

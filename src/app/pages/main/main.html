@@ -28,7 +28,7 @@
     } @else {
       <div class="grilla-peliculas">
         @for (pelicula of peliculasFiltradas(); track pelicula.id) {
-          <div class="pelicula-card">
+          <div class="pelicula-card" [routerLink]="['/pelicula', pelicula.id]">
             <img
               [src]="getImagenUrl(pelicula.imagen)"
               [alt]="pelicula.nombre"

@@ -84,3 +84,7 @@ h1 {
   color: #f5a623;
   font-weight: bold;
 }
+
+.pelicula-card {
+  cursor: pointer;
+}

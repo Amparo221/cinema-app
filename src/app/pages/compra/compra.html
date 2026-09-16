@@ -1,0 +1,14 @@
+<h1>Seleccionar butacas</h1>
+<p>Función ID: {{ funcionId() }}</p>
+
+<app-mapa-butacas
+  [butacasOcupadas]="[]"
+  (seleccionCambiada)="onSeleccionCambiada($event)"
+/>
+
+@if (butacasSeleccionadas().length > 0) {
+  <div class="resumen-seleccion">
+    <h3>Butacas seleccionadas:</h3>
+    <p>{{ butacasSeleccionadas().join(', ') }}</p>
+  </div>
+}

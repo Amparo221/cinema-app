@@ -1,0 +1,108 @@
+@if (cargando()) {
+  <p>Cargando...</p>
+} @else if (!pelicula()) {
+  <p>Película no encontrada.</p>
+} @else {
+  <div class="detalle">
+    <div class="cabecera">
+      <img [src]="getImagenUrl(pelicula()!.imagen)" [alt]="pelicula()!.nombre" />
+      <div class="info">
+        <h1>{{ pelicula()!.nombre }}</h1>
+        <p class="generos">{{ pelicula()!.generos.join(', ') }}</p>
+        <p class="duracion">{{ pelicula()!.duracion }} min</p>
+        <p class="restriccion">{{ pelicula()!.restriccion_edad }}</p>
+        <p class="puntuacion">★ {{ pelicula()!.puntuacion_promedio }}</p>
+        <p class="sinopsis">{{ pelicula()!.sinopsis }}</p>
+      </div>
+    </div>
+
+    <section class="seccion">
+      <h2>Funciones</h2>
+      @if (funcionesAgrupadas().length === 0) {
+        <p>No hay funciones disponibles.</p>
+      } @else {
+        @for (grupo of funcionesAgrupadas(); track grupo.fecha) {
+          <div class="grupo-fecha">
+            <h3>{{ formatearFecha(grupo.fecha) }}</h3>
+            <div class="botones-funcion">
+              @for (f of grupo.funciones; track f.id) {
+                <button class="btn-funcion" (click)="seleccionarFuncion(f.id)">
+                  {{ f.hora.slice(0, 5) }} — {{ f.salas?.nombre }} — {{ f.formato }} — {{ f.idioma }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+    </section>
+
+    <section class="seccion">
+      <h2>Reseñas</h2>
+
+      @if (usuario()) {
+        @if (yaTieneResena()) {
+          <p class="aviso">Ya dejaste una reseña para esta película.</p>
+        } @else {
+          <button class="btn-resena" (click)="abrirModalResena()">Dejar reseña</button>
+        }
+      } @else {
+        <p class="aviso">Iniciá sesión para dejar una reseña.</p>
+      }
+
+      @if (resenas().length === 0) {
+        <p>Todavía no hay reseñas.</p>
+      } @else {
+        <div class="lista-resenas">
+          @for (r of resenas(); track r.id) {
+            <div class="resena">
+              <div class="resena-header">
+                <strong>{{ r.profiles?.nombre }} {{ r.profiles?.apellido }}</strong>
+                <span class="estrellas">{{ '★'.repeat(r.estrellas) }}{{ '☆'.repeat(5 - r.estrellas) }}</span>
+              </div>
+              @if (r.comentario) {
+                <p>{{ r.comentario }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  @if (modalResenaAbierto()) {
+    <div class="modal-overlay" (click)="cerrarModalResena()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h2>Dejar reseña</h2>
+
+        <label>Estrellas</label>
+        <div class="selector-estrellas">
+          @for (n of [1,2,3,4,5]; track n) {
+            <span
+              class="estrella"
+              [class.activa]="n <= nuevaEstrellas()"
+              (click)="setEstrellas(n)">★</span>
+          }
+        </div>
+
+        <label>Comentario (opcional)</label>
+        <textarea
+          [ngModel]="nuevoComentario()"
+          (ngModelChange)="nuevoComentario.set($event)"
+          name="comentario"
+          rows="3"
+          maxlength="200"></textarea>
+
+        @if (errorResena()) {
+          <p class="error">{{ errorResena() }}</p>
+        }
+
+        <div class="modal-botones">
+          <button (click)="cerrarModalResena()">Cancelar</button>
+          <button class="btn-primario" [disabled]="enviandoResena()" (click)="enviarResena()">
+            {{ enviandoResena() ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

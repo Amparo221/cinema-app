@@ -14,5 +14,13 @@ export const routes: Routes = [
     path: 'registro',
     loadComponent: () => import('./pages/registro/registro').then(m => m.Registro),
   },
+  {
+    path: 'pelicula/:id',
+    loadComponent: () => import('./pages/pelicula/pelicula').then(m => m.PeliculaPage),
+  },
+  {
+    path: 'compra/:id',
+    loadComponent: () => import('./pages/compra/compra').then(m => m.Compra),
+  },
   { path: '**', redirectTo: 'main' },
 ];

@@ -49,6 +49,45 @@ export class SupabaseService {
     if (error) return null;
     return data as Profile;
   }
+  async getPelicula(id: number) {
+    return this.supabase
+      .from('peliculas')
+      .select('*')
+      .eq('id', id)
+      .single();
+  }
+
+  async getFuncionesDePelicula(peliculaId: number) {
+    return this.supabase
+      .from('funciones')
+      .select(`
+      id, pelicula_id, sala_id, fecha, hora, formato, idioma,
+      salas (nombre)
+    `)
+      .eq('pelicula_id', peliculaId)
+      .gte('fecha', new Date().toISOString().split('T')[0])
+      .order('fecha', { ascending: true })
+      .order('hora', { ascending: true });
+  }
+
+  async getResenasDePelicula(peliculaId: number) {
+    return this.supabase
+      .from('resenas')
+      .select(`
+      id, usuario_id, pelicula_id, estrellas, comentario, created_at,
+      profiles (nombre, apellido)
+    `)
+      .eq('pelicula_id', peliculaId)
+      .order('created_at', { ascending: false });
+  }
+
+  async crearResena(usuarioId: string, peliculaId: number, estrellas: number, comentario: string) {
+    return this.supabase
+      .from('resenas')
+      .insert({ usuario_id: usuarioId, pelicula_id: peliculaId, estrellas, comentario })
+      .select()
+      .single();
+  }
 
   from(table: string) {
     return this.supabase.from(table);
