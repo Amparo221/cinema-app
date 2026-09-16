@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { SessionService } from './session';
+import { SessionService } from './services/session';
 import { Sidebar } from './components/sidebar/sidebar';
 
 @Component({

@@ -1,25 +1,14 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SupabaseService } from '../../supabase';
-
-interface Pelicula {
-  id: number;
-  nombre: string;
-  imagen: string | null;
-  sinopsis: string | null;
-  duracion: number;
-  generos: string[];
-  restriccion_edad: string | null;
-  precio_preventa: number | null;
-  puntuacion_promedio: number;
-  proximamente: boolean;
-}
+import { RouterLink } from '@angular/router';
+import { SupabaseService } from '../../services/supabase';
+import { Pelicula } from '../../models/pelicula.model';
 
 @Component({
   selector: 'app-main',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './main.html',
   styleUrl: './main.css',
 })

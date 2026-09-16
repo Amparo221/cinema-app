@@ -1,6 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { Rol, SessionService } from '../../session';
+import { SessionService } from '../../services/session';
+import { Rol } from '../../models/rol.model';
 
 interface MenuItem {
   label: string;
@@ -48,7 +49,8 @@ export class Sidebar {
         ];
     }
   }
-    async cerrarSesion() {
+
+  async cerrarSesion() {
     await this.session.logout();
     this.router.navigate(['/main']);
   }

@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { SupabaseService, RegistroMetadata } from '../../supabase';
-import { SessionService } from '../../session';
+import { SupabaseService } from '../../services/supabase';
+import { SessionService } from '../../services/session';
+import { RegistroMetadata } from '../../models/profile.model';
 
 @Component({
   selector: 'app-registro',
@@ -49,7 +50,6 @@ export class Registro {
       return;
     }
 
-    // Login automático después del registro
     const errLogin = await this.session.login(this.email, this.password);
     this.cargando.set(false);
 

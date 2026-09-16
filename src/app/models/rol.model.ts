@@ -1,0 +1,1 @@
+export type Rol = 'anonimo' | 'registrado' | 'admin' | 'empleado';

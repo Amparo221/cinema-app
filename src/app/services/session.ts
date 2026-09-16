@@ -1,7 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { Profile, SupabaseService } from './supabase';
-
-export type Rol = 'anonimo' | 'registrado' | 'admin' | 'empleado';
+import { SupabaseService } from './supabase';
+import { Profile } from '../models/profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {

@@ -1,30 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { environment } from '../environments/environment';
-
-export interface Profile {
-  id: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  fecha_nacimiento: string;
-  tipo_sangre: string;
-  color_ojos: string;
-  dias_vacaciones: number;
-  puntos: number;
-  creditos: number;
-  primera_compra: boolean;
-  role: 'registrado' | 'admin' | 'empleado';
-}
-
-export interface RegistroMetadata {
-  nombre: string;
-  apellido: string;
-  fecha_nacimiento: string;
-  tipo_sangre: string;
-  color_ojos: string;
-  dias_vacaciones: number;
-}
+import { environment } from '../../environments/environment';
+import { Profile, RegistroMetadata } from '../models/profile.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -79,7 +56,5 @@ export class SupabaseService {
 
   get storage() {
     return this.supabase.storage;
-
-
   }
 }
