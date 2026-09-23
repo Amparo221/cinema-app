@@ -1,14 +1,150 @@
-<h1>Seleccionar butacas</h1>
-<p>Función ID: {{ funcionId() }}</p>
+@if (cargandoFuncion()) {
+  <p>Cargando...</p>
+} @else if (!funcion()) {
+  <p>Función no encontrada.</p>
+} @else {
+  <div class="compra-container">
+    <header class="compra-header">
+      <h1>{{ pelicula()?.nombre }}</h1>
+      <p class="funcion-info">
+        {{ funcion().fecha }} — {{ funcion().hora }} — {{ funcion().salas?.nombre }}
+      </p>
+    </header>
 
-<app-mapa-butacas
-  [butacasOcupadas]="[]"
-  (seleccionCambiada)="onSeleccionCambiada($event)"
-/>
+    <!-- Cartel de restricción de edad -->
+    @if (mostrarCartelEdad()) {
+      <div class="cartel-edad">
+        <strong>Atención:</strong>
+        Esta película tiene restricción {{ pelicula().restriccion_edad }}.
+        Los menores deben ingresar acompañados por un adulto.
+      </div>
+    }
 
-@if (butacasSeleccionadas().length > 0) {
-  <div class="resumen-seleccion">
-    <h3>Butacas seleccionadas:</h3>
-    <p>{{ butacasSeleccionadas().join(', ') }}</p>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab"
+        [class.activo]="tabActual() === 'butacas'"
+        (click)="cambiarTab('butacas')"
+      >
+        Butacas ({{ butacasSeleccionadas().length }})
+      </button>
+      <button
+        class="tab"
+        [class.activo]="tabActual() === 'candy'"
+        (click)="cambiarTab('candy')"
+      >
+        Candy ({{ cantidadItemsCandy() }})
+      </button>
+    </div>
+
+    <div class="tab-contenido">
+      @if (tabActual() === 'butacas') {
+        <app-mapa-butacas
+          [butacasOcupadas]="butacasOcupadas()"
+          (seleccionCambiada)="onSeleccionCambiada($event)"
+        />
+
+        @if (butacasSeleccionadas().length > 0) {
+          <div class="resumen">
+            <h3>Butacas seleccionadas</h3>
+            <p>{{ butacasSeleccionadas().join(', ') }}</p>
+          </div>
+        }
+      }
+
+      @if (tabActual() === 'candy') {
+        @if (cargandoProductos()) {
+          <p>Cargando productos...</p>
+        } @else if (productos().length === 0) {
+          <p>No hay productos disponibles.</p>
+        } @else {
+          <div class="grilla-productos">
+            @for (producto of productos(); track producto.id) {
+              <div class="producto-card">
+                <img
+                  [src]="getImagenProducto(producto.imagen)"
+                  [alt]="producto.nombre"
+                  class="producto-imagen"
+                />
+                <div class="producto-info">
+                  <h3>{{ producto.nombre }}</h3>
+                  @if (producto.descripcion) {
+                    <p class="descripcion">{{ producto.descripcion }}</p>
+                  }
+                  <p class="precio">${{ producto.precio }}</p>
+
+                  @if (cantidadDe(producto.id) === 0) {
+                    <button class="btn-agregar" (click)="agregarProducto(producto)">
+                      Agregar
+                    </button>
+                  } @else {
+                    <div class="selector-cantidad">
+                      <button (click)="quitarProducto(producto)">−</button>
+                      <span>{{ cantidadDe(producto.id) }}</span>
+                      <button (click)="agregarProducto(producto)">+</button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Footer fijo -->
+    <footer class="compra-footer">
+      <div class="resumen-totales">
+        <div class="total-linea">
+          <span>Butacas ({{ butacasSeleccionadas().length }})</span>
+          <span>${{ precioButacas() }}</span>
+        </div>
+
+        @if (descuentoPrimera() > 0) {
+          <div class="total-linea descuento">
+            <span>Descuento primera compra</span>
+            <span>−${{ descuentoPrimera() }}</span>
+          </div>
+        }
+
+        @if (descuentoCincuenta() > 0) {
+          <div class="total-linea descuento">
+            <span>Descuento +50</span>
+            <span>−${{ descuentoCincuenta() }}</span>
+          </div>
+        }
+
+        <div class="total-linea">
+          <span>Candy ({{ cantidadItemsCandy() }})</span>
+          <span>${{ totalCandy() }}</span>
+        </div>
+
+        @if (usuario() && creditosDisponibles() > 0) {
+          <div class="total-linea creditos">
+            <label>
+              <input type="checkbox" [checked]="usarCreditos()" (change)="toggleCreditos()" />
+              Usar créditos (disponibles: ${{ creditosDisponibles() }})
+            </label>
+            @if (creditosAplicados() > 0) {
+              <span>−${{ creditosAplicados() }}</span>
+            }
+          </div>
+        }
+
+        <div class="total-linea total">
+          <span>Total</span>
+          <span>${{ total() }}</span>
+        </div>
+
+        @if (errorCompra()) {
+          <p class="error">{{ errorCompra() }}</p>
+        }
+      </div>
+
+      <button class="btn-pagar" [disabled]="procesando()" (click)="irAPagar()">
+        {{ procesando() ? 'Procesando...' : 'Ir a pagar' }}
+      </button>
+    </footer>
   </div>
 }

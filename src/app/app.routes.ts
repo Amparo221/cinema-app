@@ -22,5 +22,9 @@ export const routes: Routes = [
     path: 'compra/:id',
     loadComponent: () => import('./pages/compra/compra').then(m => m.Compra),
   },
+  {
+  path: 'recibo/:id',
+  loadComponent: () => import('./pages/recibo/recibo').then(m => m.Recibo),
+  },
   { path: '**', redirectTo: 'main' },
 ];

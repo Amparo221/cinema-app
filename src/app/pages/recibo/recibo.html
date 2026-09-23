@@ -1,0 +1,10 @@
+@if (cargando()) {
+  <p>Cargando...</p>
+} @else if (!compra()) {
+  <p>Compra no encontrada.</p>
+} @else {
+  <h1>Recibo</h1>
+  <p>Compra ID: {{ compra().id }}</p>
+  <p>Total: ${{ compra().total }}</p>
+  <p>Película: {{ compra().funciones?.peliculas?.nombre }}</p>
+}

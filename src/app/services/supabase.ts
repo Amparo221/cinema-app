@@ -89,6 +89,78 @@ export class SupabaseService {
       .single();
   }
 
+  async getProductosCandy() {
+    return this.supabase
+      .from('productos_candy')
+      .select('*')
+      .order('categoria')
+      .order('nombre');
+  }
+
+  getCandyImageUrl(nombreArchivo: string | null): string {
+    if (!nombreArchivo) return '';
+    return this.supabase.storage.from('candy').getPublicUrl(nombreArchivo).data.publicUrl;
+  }
+
+  async getConfiguracion(): Promise<Record<string, number>> {
+  const { data, error } = await this.supabase.from('configuracion').select('*');
+  if (error || !data) return {};
+  const config: Record<string, number> = {};
+  for (const fila of data) config[fila.clave] = Number(fila.valor);
+  return config;
+}
+
+  async getButacasOcupadas(funcionId: number): Promise<string[]> {
+    const { data, error } = await this.supabase
+      .from('compra_butacas')
+      .select('codigo_butaca')
+      .eq('funcion_id', funcionId);
+    if (error || !data) return [];
+    return data.map(b => b.codigo_butaca);
+  }
+
+  async crearCompra(datos: {
+    usuario_id: string | null;
+    funcion_id: number;
+    cantidad_butacas: number;
+    precio_butacas: number;
+    precio_candy: number;
+    descuento_primera_compra: number;
+    descuento_cincuenta: number;
+    creditos_usados: number;
+    total: number;
+  }) {
+    return this.supabase
+      .from('compras')
+      .insert(datos)
+      .select()
+      .single();
+  }
+
+  async crearCompraButacas(compraId: string, funcionId: number, codigos: string[]) {
+    const filas = codigos.map(codigo => ({
+      compra_id: compraId,
+      funcion_id: funcionId,
+      codigo_butaca: codigo,
+    }));
+    return this.supabase.from('compra_butacas').insert(filas);
+  }
+
+  async actualizarPerfilTrasCompra(
+    usuarioId: string,
+    puntosSumados: number,
+    creditosRestantes: number
+  ) {
+    return this.supabase
+      .from('profiles')
+      .update({
+        puntos: puntosSumados,
+        creditos: creditosRestantes,
+        primera_compra: false,
+      })
+      .eq('id', usuarioId);
+  }
+
   from(table: string) {
     return this.supabase.from(table);
   }
