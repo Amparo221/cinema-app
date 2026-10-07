@@ -11,7 +11,6 @@
       </p>
     </header>
 
-    <!-- Cartel de restricción de edad -->
     @if (mostrarCartelEdad()) {
       <div class="cartel-edad">
         <strong>Atención:</strong>
@@ -20,7 +19,6 @@
       </div>
     }
 
-    <!-- Tabs -->
     <div class="tabs">
       <button
         class="tab"
@@ -93,7 +91,6 @@
       }
     </div>
 
-    <!-- Footer fijo -->
     <footer class="compra-footer">
       <div class="resumen-totales">
         <div class="total-linea">
@@ -115,20 +112,10 @@
           </div>
         }
 
-        <div class="total-linea">
-          <span>Candy ({{ cantidadItemsCandy() }})</span>
-          <span>${{ totalCandy() }}</span>
-        </div>
-
-        @if (usuario() && creditosDisponibles() > 0) {
-          <div class="total-linea creditos">
-            <label>
-              <input type="checkbox" [checked]="usarCreditos()" (change)="toggleCreditos()" />
-              Usar créditos (disponibles: ${{ creditosDisponibles() }})
-            </label>
-            @if (creditosAplicados() > 0) {
-              <span>−${{ creditosAplicados() }}</span>
-            }
+        @if (totalCandy() > 0) {
+          <div class="total-linea">
+            <span>Candy ({{ cantidadItemsCandy() }})</span>
+            <span>${{ totalCandy() }}</span>
           </div>
         }
 
@@ -142,9 +129,7 @@
         }
       </div>
 
-      <button class="btn-pagar" [disabled]="procesando()" (click)="irAPagar()">
-        {{ procesando() ? 'Procesando...' : 'Ir a pagar' }}
-      </button>
+      <button class="btn-pagar" (click)="irAPagar()">Ir a pagar</button>
     </footer>
   </div>
 }

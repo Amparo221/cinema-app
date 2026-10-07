@@ -5,6 +5,7 @@ import { MapaButacas } from '../../components/mapa-butacas/mapa-butacas';
 import { SupabaseService } from '../../services/supabase';
 import { SessionService } from '../../services/session';
 import { ProductoCandy, ItemCarrito } from '../../models/producto-candy.model';
+import { CompraTemporalService } from '../../services/compra-temporal';
 
 type Tab = 'butacas' | 'candy';
 
@@ -20,38 +21,30 @@ export class Compra implements OnInit {
   private router = inject(Router);
   private supabase = inject(SupabaseService);
   private session = inject(SessionService);
+  private compraTemporal = inject(CompraTemporalService);
 
   funcionId = signal(Number(this.route.snapshot.paramMap.get('id')));
   tabActual = signal<Tab>('butacas');
 
-  // Función y película
+  //SIGNALS
   funcion = signal<any>(null);
   pelicula = signal<any>(null);
   cargandoFuncion = signal(true);
 
-  // Butacas
   butacasSeleccionadas = signal<string[]>([]);
   butacasOcupadas = signal<string[]>([]);
 
-  // Candy
   productos = signal<ProductoCandy[]>([]);
   cargandoProductos = signal(true);
   carrito = signal<Map<number, ItemCarrito>>(new Map());
 
-  // Configuración
   config = signal<Record<string, number>>({});
-  configCargada = signal(false);
 
-  // Descuentos y créditos
-  usarCreditos = signal(false);
-
-  // Estado de la compra
-  procesando = signal(false);
   errorCompra = signal<string | null>(null);
 
   usuario = this.session.usuario;
 
-  // Cálculo de precios de butacas
+  // Calculo de precios de butacas
   precioButacas = computed(() => {
     const butacas = this.butacasSeleccionadas();
     const cfg = this.config();
@@ -97,24 +90,12 @@ export class Compra implements OnInit {
     return Math.round(this.precioButacas() * pct / 100);
   });
 
-  // Total antes de créditos
+  // Total antes de creditos
   subtotalConDescuentos = computed(() => {
     return this.precioButacas() - this.descuentoPrimera() - this.descuentoCincuenta() + this.totalCandy();
   });
 
-  // Créditos aplicables
-  creditosDisponibles = computed(() => {
-    return this.usuario()?.creditos ?? 0;
-  });
-
-  creditosAplicados = computed(() => {
-    if (!this.usarCreditos()) return 0;
-    return Math.min(this.creditosDisponibles(), this.subtotalConDescuentos());
-  });
-
-  total = computed(() => {
-    return Math.max(0, this.subtotalConDescuentos() - this.creditosAplicados());
-  });
+  total = computed(() => this.subtotalConDescuentos());
 
   cantidadItemsCandy = computed(() => {
     let total = 0;
@@ -174,7 +155,6 @@ export class Compra implements OnInit {
   async cargarConfig() {
     const cfg = await this.supabase.getConfiguracion();
     this.config.set(cfg);
-    this.configCargada.set(true);
   }
 
   calcularEdad(fechaNacimiento: string): number {
@@ -225,11 +205,7 @@ export class Compra implements OnInit {
     this.carrito.set(actual);
   }
 
-  toggleCreditos() {
-    this.usarCreditos.set(!this.usarCreditos());
-  }
-
-  async irAPagar() {
+    irAPagar() {
     this.errorCompra.set(null);
 
     if (this.butacasSeleccionadas().length === 0) {
@@ -237,51 +213,29 @@ export class Compra implements OnInit {
       return;
     }
 
-    this.procesando.set(true);
-
     const u = this.usuario();
-    const totalFinal = this.total();
-    const puntosSumados = Math.round(totalFinal);
-    const { data: compra, error: errCompra } = await this.supabase.crearCompra({
-      usuario_id: u?.id ?? null,
+    const pel = this.pelicula();
+    const func = this.funcion();
+
+
+      this.compraTemporal.set({
       funcion_id: this.funcionId(),
-      cantidad_butacas: this.butacasSeleccionadas().length,
+      pelicula_nombre: pel.nombre,
+      funcion_fecha: func.fecha,
+      funcion_hora: func.hora,
+      sala_nombre: func.salas?.nombre ?? '',
+      butacas: this.butacasSeleccionadas(),
       precio_butacas: this.precioButacas(),
-      precio_candy: this.totalCandy(),
       descuento_primera_compra: this.descuentoPrimera(),
       descuento_cincuenta: this.descuentoCincuenta(),
-      creditos_usados: this.creditosAplicados(),
-      total: totalFinal,
+      carrito_candy: Array.from(this.carrito().values()),
+      total_candy: this.totalCandy(),
+      subtotal_con_descuentos: this.subtotalConDescuentos(),
+      creditos_disponibles: u?.creditos ?? 0,
+      creditos_usados: 0,
+      total: this.total(),
     });
 
-    if (errCompra || !compra) {
-      this.procesando.set(false);
-      this.errorCompra.set(errCompra?.message ?? 'Error al crear la compra.');
-      return;
-    }
-
-    const { error: errButacas } = await this.supabase.crearCompraButacas(
-      compra.id,
-      this.funcionId(),
-      this.butacasSeleccionadas()
-    );
-
-    if (errButacas) {
-      this.procesando.set(false);
-      this.errorCompra.set('Alguna butaca ya fue ocupada por otra compra. Volvé a seleccionar.');
-      await this.cargarButacasOcupadas();
-      return;
-    }
-
-    if (u) {
-      const nuevosPuntos = u.puntos + puntosSumados;
-      const nuevosCreditos = u.creditos - this.creditosAplicados();
-      await this.supabase.actualizarPerfilTrasCompra(u.id, nuevosPuntos, nuevosCreditos);
-      await this.session.cargarSesion();
-    }
-
-    this.procesando.set(false);
-
-    this.router.navigate(['/recibo', compra.id]);
+    this.router.navigate(['/pago']);
   }
 }

@@ -1,0 +1,74 @@
+@if (!usuario()) {
+  <p>Tenés que iniciar sesión para ver tu perfil.</p>
+  <a routerLink="/login">Iniciar sesión</a>
+} @else {
+  <div class="perfil-container">
+    <h1>Mi perfil</h1>
+
+    <section class="seccion">
+      <h2>Datos personales</h2>
+      <div class="datos-grid">
+        <div><strong>Nombre:</strong> {{ usuario()!.nombre }} {{ usuario()!.apellido }}</div>
+        <div><strong>Email:</strong> {{ usuario()!.email }}</div>
+        <div><strong>Fecha de nacimiento:</strong> {{ usuario()!.fecha_nacimiento }}</div>
+        <div><strong>Tipo de sangre:</strong> {{ usuario()!.tipo_sangre }}</div>
+        <div><strong>Color de ojos:</strong> {{ usuario()!.color_ojos }}</div>
+        <div><strong>Días de vacaciones:</strong> {{ usuario()!.dias_vacaciones }}</div>
+      </div>
+    </section>
+
+    <section class="saldo">
+      <div class="saldo-card">
+        <h2>Puntos</h2>
+        <p class="numero">{{ puntos() }}</p>
+        <p class="nota">No son transferibles entre usuarios.</p>
+      </div>
+      <div class="saldo-card">
+        <h2>Créditos</h2>
+        <p class="numero">${{ creditos() }}</p>
+        <p class="nota">Se usan para pagar entradas.</p>
+      </div>
+    </section>
+
+    <section class="seccion">
+      <h2>Historial de canjes</h2>
+      @if (canjes().length === 0) {
+        <p class="vacio">Todavía no canjeaste ninguna recompensa.</p>
+      } @else {
+        <ul class="lista-canjes">
+          @for (c of canjes(); track c.id) {
+            <li>
+              <span>Recompensa #{{ c.recompensa_id }}</span>
+              <span>{{ c.puntos_usados }} puntos</span>
+              <span class="fecha">{{ formatearFecha(c.created_at) }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="seccion">
+      <h2>Historial de compras</h2>
+      @if (compras().length === 0) {
+        <p class="vacio">Todavía no hiciste ninguna compra.</p>
+      } @else {
+        <ul class="lista-compras">
+          @for (c of compras(); track c.id) {
+            <li>
+              <div>
+                <strong>{{ c.funciones?.peliculas?.nombre }}</strong>
+                <p class="fecha">{{ formatearFecha(c.created_at) }}</p>
+              </div>
+              <div class="compra-derecha">
+                <span class="total">${{ c.total }}</span>
+                <span class="estado" [class.cancelada]="c.estado === 'cancelada'">
+                  {{ c.estado }}
+                </span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+}

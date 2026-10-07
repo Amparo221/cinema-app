@@ -129,6 +129,7 @@ export class SupabaseService {
     descuento_cincuenta: number;
     creditos_usados: number;
     total: number;
+    metodo_pago: string;
   }) {
     return this.supabase
       .from('compras')
@@ -165,7 +166,45 @@ export class SupabaseService {
     return this.supabase.from(table);
   }
 
+  async getCompra(id: string) {
+    return this.supabase
+    .from('compras')
+    .select(`
+      *,
+      funciones (
+        fecha, hora,
+        peliculas (nombre, duracion, imagen),
+        salas (nombre)
+      )
+    `)
+    .eq('id', id)
+    .single();
+}
+
+  async cancelarCompra(compraId: string) {
+    return this.supabase.rpc('cancelar_compra', { p_compra_id: compraId });
+  }
+
   get storage() {
     return this.supabase.storage;
   }
+
+  async getCanjesDeUsuario(usuarioId: string) {
+  return this.supabase
+    .from('canjes')
+    .select('*')
+    .eq('usuario_id', usuarioId)
+    .order('created_at', { ascending: false });
+}
+
+async getComprasDeUsuario(usuarioId: string) {
+  return this.supabase
+    .from('compras')
+    .select(`
+      id, total, estado, created_at,
+      funciones (fecha, hora, peliculas (nombre))
+    `)
+    .eq('usuario_id', usuarioId)
+    .order('created_at', { ascending: false });
+}
 }

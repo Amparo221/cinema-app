@@ -1,0 +1,137 @@
+@if (!resumen()) {
+  <p>No hay compra en curso.</p>
+} @else {
+  <div class="pago-container">
+    <h1>Finalizar compra</h1>
+
+    <div class="pago-grid">
+      <!-- Columna izquierda: resumen -->
+      <div class="resumen-compra">
+        <h2>Resumen</h2>
+
+        <div class="resumen-item">
+          <strong>{{ resumen()!.pelicula_nombre }}</strong>
+          <p>{{ formatearFecha(resumen()!.funcion_fecha) }} — {{ resumen()!.funcion_hora }}</p>
+          <p>{{ resumen()!.sala_nombre }}</p>
+        </div>
+
+        <div class="resumen-item">
+          <strong>Butacas ({{ resumen()!.butacas.length }})</strong>
+          <p>{{ resumen()!.butacas.join(', ') }}</p>
+        </div>
+
+        @if (resumen()!.carrito_candy.length > 0) {
+          <div class="resumen-item">
+            <strong>Candy</strong>
+            <ul>
+              @for (item of resumen()!.carrito_candy; track item.producto.id) {
+                <li>{{ item.cantidad }}x {{ item.producto.nombre }} — ${{ item.producto.precio * item.cantidad }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="totales">
+          <div class="linea">
+            <span>Butacas</span>
+            <span>${{ resumen()!.precio_butacas }}</span>
+          </div>
+
+          @if (resumen()!.descuento_primera_compra > 0) {
+            <div class="linea descuento">
+              <span>Descuento primera compra</span>
+              <span>−${{ resumen()!.descuento_primera_compra }}</span>
+            </div>
+          }
+
+          @if (resumen()!.descuento_cincuenta > 0) {
+            <div class="linea descuento">
+              <span>Descuento +50</span>
+              <span>−${{ resumen()!.descuento_cincuenta }}</span>
+            </div>
+          }
+
+          @if (resumen()!.total_candy > 0) {
+            <div class="linea">
+              <span>Candy</span>
+              <span>${{ resumen()!.total_candy }}</span>
+            </div>
+          }
+
+          <div class="linea subtotal">
+            <span>Subtotal</span>
+            <span>${{ resumen()!.subtotal_con_descuentos }}</span>
+          </div>
+
+          @if (resumen()!.creditos_disponibles > 0) {
+            <div class="linea creditos">
+              <label>
+                <input type="checkbox" [checked]="usarCreditos()" (change)="toggleCreditos()" />
+                Usar créditos (disponibles: ${{ resumen()!.creditos_disponibles }})
+              </label>
+              @if (creditosAplicados() > 0) {
+                <span>−${{ creditosAplicados() }}</span>
+              }
+            </div>
+          }
+
+          <div class="linea total">
+            <span>Total a pagar</span>
+            <span>${{ totalFinal() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: método de pago -->
+      <div class="metodo-pago">
+        <h2>Método de pago</h2>
+
+        <div class="opciones-pago">
+          <button
+            class="opcion"
+            [class.activa]="metodoPago() === 'tarjeta'"
+            (click)="setMetodo('tarjeta')"
+          >
+            <span class="icono">💳</span>
+            <span>Tarjeta</span>
+          </button>
+
+          <button
+            class="opcion"
+            [class.activa]="metodoPago() === 'transferencia'"
+            (click)="setMetodo('transferencia')"
+          >
+            <span class="icono">🏦</span>
+            <span>Transferencia</span>
+          </button>
+
+          <button
+            class="opcion"
+            [class.activa]="metodoPago() === 'efectivo'"
+            (click)="setMetodo('efectivo')"
+          >
+            <span class="icono">💵</span>
+            <span>Efectivo al presentar entrada</span>
+          </button>
+        </div>
+
+        @if (montoRestante() === 0 && creditosAplicados() > 0) {
+          <p class="aviso-pago-total">
+            El total se cubre completamente con créditos. No se cobrará nada adicional.
+          </p>
+        }
+
+        @if (error()) {
+          <p class="error">{{ error() }}</p>
+        }
+
+        <div class="acciones">
+          <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+          <button class="btn-confirmar" [disabled]="procesando()" (click)="confirmarPago()">
+            {{ procesando() ? 'Procesando...' : 'Confirmar pago' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'main', pathMatch: 'full' },
@@ -25,6 +26,15 @@ export const routes: Routes = [
   {
   path: 'recibo/:id',
   loadComponent: () => import('./pages/recibo/recibo').then(m => m.Recibo),
+  },
+  {
+  path: 'pago',
+  loadComponent: () => import('./pages/pago/pago').then(m => m.Pago),
+  },
+  {
+  path: 'perfil',
+  canActivate: [authGuard],
+  loadComponent: () => import('./pages/perfil/perfil').then(m => m.Perfil),
   },
   { path: '**', redirectTo: 'main' },
 ];

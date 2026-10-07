@@ -1,10 +1,99 @@
 @if (cargando()) {
-  <p>Cargando...</p>
+  <p>Cargando recibo...</p>
 } @else if (!compra()) {
   <p>Compra no encontrada.</p>
 } @else {
-  <h1>Recibo</h1>
-  <p>Compra ID: {{ compra().id }}</p>
-  <p>Total: ${{ compra().total }}</p>
-  <p>Película: {{ compra().funciones?.peliculas?.nombre }}</p>
+  <div class="recibo-container">
+    <div id="recibo-pdf" class="recibo">
+      <div class="recibo-header">
+        <h1>Cinema</h1>
+        <p class="codigo-compra">Compra #{{ compra()!.id.slice(0, 8) }}</p>
+      </div>
+
+      <div class="recibo-info">
+        <h2>{{ compra()!.funciones?.peliculas?.nombre }}</h2>
+        <p class="fecha">
+          {{ formatearFecha(compra()!.funciones?.fecha!, compra()!.funciones?.hora!) }}
+        </p>
+        <p class="sala">{{ compra()!.funciones?.salas?.nombre }}</p>
+      </div>
+
+      <div class="recibo-qr">
+        <qrcode
+          [qrdata]="compra()!.qr_code"
+          [width]="200"
+          [errorCorrectionLevel]="'M'"
+        ></qrcode>
+        <p>Presentá este código en la entrada</p>
+      </div>
+
+      <div class="recibo-detalle">
+        <div class="linea">
+          <span>Butacas ({{ compra()!.cantidad_butacas }})</span>
+          <span>${{ compra()!.precio_butacas }}</span>
+        </div>
+        @if (compra()!.precio_candy > 0) {
+          <div class="linea">
+            <span>Candy</span>
+            <span>${{ compra()!.precio_candy }}</span>
+          </div>
+        }
+        @if (compra()!.descuento_primera_compra > 0) {
+          <div class="linea descuento">
+            <span>Descuento primera compra</span>
+            <span>−${{ compra()!.descuento_primera_compra }}</span>
+          </div>
+        }
+        @if (compra()!.descuento_cincuenta > 0) {
+          <div class="linea descuento">
+            <span>Descuento +50</span>
+            <span>−${{ compra()!.descuento_cincuenta }}</span>
+          </div>
+        }
+        @if (compra()!.creditos_usados > 0) {
+          <div class="linea descuento">
+            <span>Créditos usados</span>
+            <span>−${{ compra()!.creditos_usados }}</span>
+          </div>
+        }
+        <div class="linea total">
+          <span>Total</span>
+          <span>${{ compra()!.total }}</span>
+        </div>
+      </div>
+
+      <div class="recibo-estado">
+        <p>Estado: <strong>{{ compra()!.estado }}</strong></p>
+        <p>Método de pago: {{ compra()!.metodo_pago }}</p>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="acciones">
+      <button class="btn-pdf" (click)="descargarPDF()">Descargar PDF</button>
+
+      @if (puedeCancelar()) {
+        <button
+          class="btn-cancelar"
+          [disabled]="cancelando()"
+          (click)="cancelarCompra()"
+        >
+          {{ cancelando() ? 'Cancelando...' : 'Cancelar compra' }}
+        </button>
+        <p class="aviso-cancelacion">
+          Se te devolverán ${{ creditosDevolucion() }} en créditos. No se devuelve dinero.
+        </p>
+      } @else if (usuario() && compra()!.usuario_id === usuario()!.id && compra()!.estado === 'valida') {
+        <p class="aviso-no-cancelable">
+          No podés cancelar esta compra (faltan menos de 2 horas para la función).
+        </p>
+      }
+
+      @if (errorCancelacion()) {
+        <p class="error">{{ errorCancelacion() }}</p>
+      }
+
+      <a routerLink="/main" class="btn-volver">Volver al inicio</a>
+    </div>
+  </div>
 }

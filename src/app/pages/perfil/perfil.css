@@ -1,0 +1,113 @@
+.perfil-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.seccion {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+}
+
+.seccion h2 {
+  margin-top: 0;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.saldo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.saldo-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.saldo-card h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: #666;
+}
+
+.saldo-card .numero {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #e50914;
+  margin: 0.5rem 0;
+}
+
+.saldo-card .nota {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0;
+}
+
+.lista-canjes,
+.lista-compras {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-canjes li,
+.lista-compras li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.lista-canjes li:last-child,
+.lista-compras li:last-child {
+  border-bottom: none;
+}
+
+.fecha {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.compra-derecha {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.total {
+  font-weight: bold;
+}
+
+.estado {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  text-transform: capitalize;
+}
+
+.estado.cancelada {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.vacio {
+  color: #888;
+  font-style: italic;
+}

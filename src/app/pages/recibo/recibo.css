@@ -1,0 +1,150 @@
+.recibo-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.recibo {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border: 2px dashed #e50914;
+}
+
+.recibo-header {
+  text-align: center;
+  border-bottom: 2px solid #1c1c1c;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.recibo-header h1 {
+  margin: 0;
+  color: #e50914;
+}
+
+.codigo-compra {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.recibo-info h2 {
+  margin: 0 0 0.5rem 0;
+}
+
+.recibo-info .fecha {
+  font-size: 1.1rem;
+  color: #1c1c1c;
+  margin: 0.5rem 0;
+}
+
+.recibo-info .sala {
+  color: #666;
+  margin: 0;
+}
+
+.recibo-qr {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.recibo-qr p {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.recibo-detalle {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.linea {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.linea.descuento {
+  color: #2e7d32;
+}
+
+.linea.total {
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-top: 2px solid #1c1c1c;
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.recibo-estado {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.acciones {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-pdf {
+  padding: 0.75rem;
+  background: #1c1c1c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-cancelar {
+  padding: 0.75rem;
+  background: #fff;
+  color: #d32f2f;
+  border: 2px solid #d32f2f;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-cancelar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-volver {
+  padding: 0.75rem;
+  background: #e50914;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.aviso-cancelacion {
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+  margin: 0;
+}
+
+.aviso-no-cancelable {
+  font-size: 0.85rem;
+  color: #856404;
+  background: #fff3cd;
+  padding: 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.error {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  text-align: center;
+}
