@@ -6,7 +6,7 @@ export interface Pelicula {
   duracion: number;
   generos: string[];
   restriccion_edad: string | null;
-  precio_prevneta: number | null;
+  precio_preventa: number | null;
   puntuacion_promedio: number;
   proximamente: boolean;
 }

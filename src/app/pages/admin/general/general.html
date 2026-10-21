@@ -1,0 +1,173 @@
+<div class="admin-general">
+  <header class="encabezado">
+    <h1>General</h1>
+    <p>Administrá las películas y los productos del candy bar.</p>
+  </header>
+
+  @if (error()) {
+    <p class="alerta error" role="alert">{{ error() }}</p>
+  }
+  @if (mensaje()) {
+    <p class="alerta exito" role="status">{{ mensaje() }}</p>
+  }
+
+  <section class="seccion" aria-labelledby="titulo-peliculas">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-peliculas">Películas</h2>
+        <p class="subtitulo">{{ peliculas().length }} en el catálogo</p>
+      </div>
+      <button
+        type="button"
+        class="btn-primario"
+        (click)="abrirFormPelicula()"
+        [disabled]="mostrarFormPelicula()"
+        aria-controls="form-pelicula"
+        [attr.aria-expanded]="mostrarFormPelicula()"
+      >
+        Crear película
+      </button>
+    </div>
+
+    @if (mostrarFormPelicula()) {
+      <div id="form-pelicula" class="form-contenedor">
+        <app-pelicula-form
+          [guardando]="guardandoPelicula()"
+          (guardar)="guardarPelicula($event)"
+          (cancelar)="cerrarFormPelicula()"
+        />
+      </div>
+    }
+
+    @if (cargando()) {
+      <p class="estado">Cargando películas...</p>
+    } @else if (peliculas().length === 0) {
+      <p class="estado">Todavía no hay películas cargadas.</p>
+    } @else {
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">Películas existentes</caption>
+          <thead>
+            <tr>
+              <th scope="col">Imagen</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Duración</th>
+              <th scope="col">Géneros</th>
+              <th scope="col">Clasificación</th>
+              <th scope="col">Precio preventa</th>
+              <th scope="col">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pelicula of peliculas(); track pelicula.id) {
+              <tr>
+                <td>
+                  @if (pelicula.imagen) {
+                    <img
+                      class="miniatura"
+                      [src]="getImagenPelicula(pelicula.imagen)"
+                      [alt]="'Póster de ' + pelicula.nombre"
+                    />
+                  } @else {
+                    <span class="sin-imagen">Sin imagen</span>
+                  }
+                </td>
+                <td class="nombre">{{ pelicula.nombre }}</td>
+                <td>{{ pelicula.duracion }} min</td>
+                <td>{{ pelicula.generos.length > 0 ? pelicula.generos.join(', ') : '—' }}</td>
+                <td>{{ etiquetaRestriccion(pelicula.restriccion_edad) }}</td>
+                <td>{{ formatearPrecio(pelicula.precio_preventa) }}</td>
+                <td>
+                  @if (pelicula.proximamente) {
+                    <span class="badge proximamente">Próximamente</span>
+                  } @else {
+                    <span class="badge cartelera">En cartelera</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-candy">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-candy">Candy bar</h2>
+        <p class="subtitulo">{{ productos().length }} productos cargados</p>
+      </div>
+      <button
+        type="button"
+        class="btn-primario"
+        (click)="abrirFormCandy()"
+        [disabled]="mostrarFormCandy()"
+        aria-controls="form-candy"
+        [attr.aria-expanded]="mostrarFormCandy()"
+      >
+        Crear producto
+      </button>
+    </div>
+
+    @if (mostrarFormCandy()) {
+      <div id="form-candy" class="form-contenedor">
+        <app-producto-candy-form
+          [guardando]="guardandoCandy()"
+          (guardar)="guardarProducto($event)"
+          (cancelar)="cerrarFormCandy()"
+        />
+      </div>
+    }
+
+    @if (cargando()) {
+      <p class="estado">Cargando productos...</p>
+    } @else if (productos().length === 0) {
+      <p class="estado">Todavía no hay productos cargados.</p>
+    } @else {
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">Productos del candy bar</caption>
+          <thead>
+            <tr>
+              <th scope="col">Imagen</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Categoría</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Precio</th>
+              <th scope="col">Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (producto of productos(); track producto.id) {
+              <tr>
+                <td>
+                  @if (producto.imagen) {
+                    <img
+                      class="miniatura cuadrada"
+                      [src]="getImagenProducto(producto.imagen)"
+                      [alt]="'Imagen de ' + producto.nombre"
+                    />
+                  } @else {
+                    <span class="sin-imagen">Sin imagen</span>
+                  }
+                </td>
+                <td class="nombre">{{ producto.nombre }}</td>
+                <td><span class="badge categoria">{{ etiquetaCategoria(producto.categoria) }}</span></td>
+                <td>{{ producto.descripcion || '—' }}</td>
+                <td>{{ formatearPrecio(producto.precio) }}</td>
+                <td>
+                  @if (producto.stock === 0) {
+                    <span class="badge agotado">Sin stock</span>
+                  } @else {
+                    <span class="badge disponible">{{ producto.stock }} u.</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

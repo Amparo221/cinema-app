@@ -1,28 +1,40 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { SessionService } from '../../services/session';
 import { Rol } from '../../models/rol.model';
+import { SeccionAdmin, tienePermiso } from '../../core/permisos';
 
 interface MenuItem {
   label: string;
   ruta: string;
 }
 
+interface MenuItemAdmin extends MenuItem {
+  seccion: SeccionAdmin;
+}
+
+const ITEMS_ADMIN: readonly MenuItemAdmin[] = [
+  { label: 'General', ruta: '/admin/general', seccion: 'general' },
+  { label: 'Escáner', ruta: '/admin/escaner', seccion: 'escaner' },
+  { label: 'Reporte', ruta: '/admin/reporte', seccion: 'reporte' },
+  { label: 'Log', ruta: '/admin/log', seccion: 'log' },
+];
+
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
 export class Sidebar {
-  @Input() rol: Rol = 'anonimo';
+  rol = input<Rol>('anonimo');
 
   private session = inject(SessionService);
   private router = inject(Router);
 
   get items(): MenuItem[] {
-    switch (this.rol) {
+    const rol = this.rol();
+    switch (rol) {
       case 'anonimo':
         return [
           { label: 'Main', ruta: '/main' },
@@ -41,12 +53,9 @@ export class Sidebar {
           { label: 'Escáner', ruta: '/escaner' },
         ];
       case 'admin':
-        return [
-          { label: 'General', ruta: '/admin/general' },
-          { label: 'Escáner', ruta: '/admin/escaner' },
-          { label: 'Reporte', ruta: '/admin/reporte' },
-          { label: 'Log', ruta: '/admin/log' },
-        ];
+        return ITEMS_ADMIN
+          .filter(item => tienePermiso(rol, item.seccion))
+          .map(({ label, ruta }) => ({ label, ruta }));
     }
   }
 

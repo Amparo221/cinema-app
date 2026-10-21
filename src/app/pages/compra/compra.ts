@@ -112,7 +112,8 @@ export class Compra implements OnInit {
     if (!u) return true;
 
     const edad = this.calcularEdad(u.fecha_nacimiento);
-    const minima = p.restriccion_edad === '18+' ? 18 : 13;
+    const minima =
+      p.restriccion_edad === '18+' ? 18 : p.restriccion_edad === '16+' ? 16 : 13;
     return edad < minima;
   });
 

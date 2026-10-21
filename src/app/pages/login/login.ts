@@ -28,6 +28,14 @@ export class Login {
       this.error.set(err);
       return;
     }
-    this.router.navigate(['/main']);
+
+    const perfil = this.session.usuario();
+    if (!perfil) {
+      this.error.set('No se pudo cargar tu perfil. Intentá nuevamente.');
+      return;
+    }
+
+    const destino = perfil.role === 'admin' ? '/admin/general' : '/main';
+    await this.router.navigate([destino]);
   }
 }

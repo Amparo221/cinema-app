@@ -2,6 +2,16 @@ import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 import { Profile, RegistroMetadata } from '../models/profile.model';
+import {
+  NuevaPelicula,
+  NuevoProductoCandy,
+  ResultadoSubida,
+} from '../models/admin.model';
+
+interface FilaAsientoVendido {
+  funciones: { pelicula_id: number } | null;
+  compras: { estado: string } | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -57,6 +67,21 @@ export class SupabaseService {
       .single();
   }
 
+  async getTodasLasPeliculas() {
+    return this.supabase
+      .from('peliculas')
+      .select('*')
+      .order('nombre');
+  }
+
+  async crearPelicula(datos: NuevaPelicula) {
+    return this.supabase
+      .from('peliculas')
+      .insert(datos)
+      .select()
+      .single();
+  }
+
   async getFuncionesDePelicula(peliculaId: number) {
     return this.supabase
       .from('funciones')
@@ -97,6 +122,52 @@ export class SupabaseService {
       .order('nombre');
   }
 
+  async crearProductoCandy(datos: NuevoProductoCandy) {
+    return this.supabase
+      .from('productos_candy')
+      .insert(datos)
+      .select()
+      .single();
+  }
+
+  async subirImagen(
+    bucket: 'peliculas' | 'candy',
+    archivo: File
+  ): Promise<ResultadoSubida> {
+    const nombreArchivo = `${this.generarIdArchivo()}.${this.extensionDe(archivo)}`;
+
+    const { error } = await this.supabase.storage
+      .from(bucket)
+      .upload(nombreArchivo, archivo, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: archivo.type || undefined,
+      });
+
+    if (error) return { nombreArchivo: null, error: error.message };
+    return { nombreArchivo, error: null };
+  }
+
+  private extensionDe(archivo: File): string {
+    const extension = archivo.name.split('.').pop()?.toLowerCase();
+    if (extension && /^[a-z0-9]+$/.test(extension)) return extension;
+    if (archivo.type === 'image/png') return 'png';
+    if (archivo.type === 'image/webp') return 'webp';
+    return 'jpg';
+  }
+
+  private generarIdArchivo(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  getPeliculaImageUrl(nombreArchivo: string | null): string {
+    if (!nombreArchivo) return '';
+    return this.supabase.storage.from('peliculas').getPublicUrl(nombreArchivo).data.publicUrl;
+  }
+
   getCandyImageUrl(nombreArchivo: string | null): string {
     if (!nombreArchivo) return '';
     return this.supabase.storage.from('candy').getPublicUrl(nombreArchivo).data.publicUrl;
@@ -117,6 +188,28 @@ export class SupabaseService {
       .eq('funcion_id', funcionId);
     if (error || !data) return [];
     return data.map(b => b.codigo_butaca);
+  }
+
+  async getAsientosVendidosPorPelicula(): Promise<Map<number, number>> {
+    const { data, error } = await this.supabase
+      .from('compra_butacas')
+      .select(`
+        funciones!inner (pelicula_id),
+        compras!inner (estado)
+      `)
+      .neq('compras.estado', 'cancelada');
+
+    if (error || !data) return new Map();
+
+    const conteo = new Map<number, number>();
+    for (const fila of data as unknown as FilaAsientoVendido[]) {
+      const peliculaId = fila.funciones?.pelicula_id;
+      if (typeof peliculaId === 'number') {
+        conteo.set(peliculaId, (conteo.get(peliculaId) ?? 0) + 1);
+      }
+    }
+
+    return conteo;
   }
 
   async crearCompra(datos: {
@@ -207,4 +300,26 @@ async getComprasDeUsuario(usuarioId: string) {
     .eq('usuario_id', usuarioId)
     .order('created_at', { ascending: false });
 }
+
+  async getResenasDeUsuario(usuarioId: string) {
+    return this.supabase
+      .from('resenas')
+      .select(`
+        id, usuario_id, pelicula_id, estrellas, comentario, created_at,
+        peliculas (nombre, imagen)
+      `)
+      .eq('usuario_id', usuarioId)
+      .order('created_at', { ascending: false });
+  }
+
+  async getPeliculasCompradasDeUsuario(usuarioId: string) {
+    return this.supabase
+      .from('compras')
+      .select(`
+        id, created_at, estado,
+        funciones (peliculas (id, nombre, imagen))
+      `)
+      .eq('usuario_id', usuarioId)
+      .order('created_at', { ascending: false });
+  }
 }

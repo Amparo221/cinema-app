@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CompraTemporal } from './compra-temporal';
+import { CompraTemporalService as CompraTemporal } from './compra-temporal';
 
 describe('CompraTemporal', () => {
   let service: CompraTemporal;

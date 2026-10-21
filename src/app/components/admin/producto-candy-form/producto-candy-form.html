@@ -1,0 +1,103 @@
+<form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="campo">
+    <label for="candy-nombre">Nombre *</label>
+    <input
+      id="candy-nombre"
+      type="text"
+      formControlName="nombre"
+      autocomplete="off"
+      [attr.aria-invalid]="nombre.touched && nombre.invalid ? 'true' : null"
+      [attr.aria-describedby]="nombre.touched && nombre.invalid ? 'candy-nombre-error' : null"
+    />
+    @if (nombre.touched && nombre.invalid) {
+      <p id="candy-nombre-error" class="error-campo" role="alert">
+        El nombre es obligatorio.
+      </p>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="candy-descripcion">Descripción</label>
+    <textarea id="candy-descripcion" formControlName="descripcion" rows="2"></textarea>
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="candy-categoria">Categoría *</label>
+      <select id="candy-categoria" formControlName="categoria">
+        @for (categoria of categorias; track categoria.valor) {
+          <option [value]="categoria.valor">{{ categoria.etiqueta }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="candy-precio">Precio *</label>
+      <input
+        id="candy-precio"
+        type="number"
+        min="0"
+        formControlName="precio"
+        [attr.aria-invalid]="precio.touched && precio.invalid ? 'true' : null"
+        [attr.aria-describedby]="precio.touched && precio.invalid ? 'candy-precio-error' : null"
+      />
+      @if (precio.touched && precio.invalid) {
+        <p id="candy-precio-error" class="error-campo" role="alert">
+          Ingresá un precio válido (no negativo).
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="candy-stock">Stock *</label>
+      <input
+        id="candy-stock"
+        type="number"
+        min="0"
+        formControlName="stock"
+        [attr.aria-invalid]="stock.touched && stock.invalid ? 'true' : null"
+        [attr.aria-describedby]="stock.touched && stock.invalid ? 'candy-stock-error' : null"
+      />
+      @if (stock.touched && stock.invalid) {
+        <p id="candy-stock-error" class="error-campo" role="alert">
+          Ingresá un stock válido (no negativo).
+        </p>
+      }
+    </div>
+  </div>
+
+  <fieldset class="campo campo-imagen">
+    <legend id="candy-imagen-legend">Imagen *</legend>
+    <input
+      #inputImagen
+      id="candy-imagen"
+      type="file"
+      aria-labelledby="candy-imagen-legend"
+      accept="image/png,image/jpeg,image/webp"
+      (change)="onImagenSeleccionada($event)"
+      [attr.aria-invalid]="errorImagen() ? 'true' : null"
+      [attr.aria-describedby]="errorImagen() ? 'candy-imagen-ayuda candy-imagen-error' : 'candy-imagen-ayuda'"
+    />
+    <p id="candy-imagen-ayuda" class="ayuda">PNG, JPG o WEBP. Máximo 5 MB.</p>
+    @if (errorImagen()) {
+      <p id="candy-imagen-error" class="error-campo" role="alert">{{ errorImagen() }}</p>
+    }
+    @if (previewImagen(); as preview) {
+      <div class="preview">
+        <img [src]="preview" alt="Vista previa de la imagen seleccionada" />
+        <button type="button" class="btn-secundario" (click)="quitarImagen(inputImagen)">
+          Quitar imagen
+        </button>
+      </div>
+    }
+  </fieldset>
+
+  <div class="acciones">
+    <button type="button" class="btn-secundario" (click)="cancelar.emit()" [disabled]="guardando()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-primario" [disabled]="guardando()" [attr.aria-busy]="guardando()">
+      {{ guardando() ? 'Guardando...' : 'Crear producto' }}
+    </button>
+  </div>
+</form>

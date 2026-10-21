@@ -1,0 +1,60 @@
+@if (!usuario()) {
+  <p>Tenés que iniciar sesión para ver tus películas.</p>
+  <a routerLink="/login">Iniciar sesión</a>
+} @else {
+  <div class="mis-peliculas-container">
+    <h1>Mis películas</h1>
+
+    <section class="seccion">
+      <h2>Mis reseñas</h2>
+      @if (cargando()) {
+        <p>Cargando...</p>
+      } @else if (resenas().length === 0) {
+        <p class="vacio">Todavía no escribiste ninguna reseña.</p>
+      } @else {
+        <div class="lista-resenas">
+          @for (r of resenas(); track r.id) {
+            <a class="resena" [routerLink]="['/pelicula', r.pelicula_id]">
+              <img
+                class="resena-imagen"
+                [src]="getImagenUrl(r.peliculas?.imagen ?? null)"
+                [alt]="r.peliculas?.nombre ?? ''"
+              />
+              <div class="resena-info">
+                <div class="resena-header">
+                  <strong>{{ r.peliculas?.nombre ?? 'Película #' + r.pelicula_id }}</strong>
+                  <span class="estrellas">{{ '★'.repeat(r.estrellas) }}{{ '☆'.repeat(5 - r.estrellas) }}</span>
+                </div>
+                @if (r.comentario) {
+                  <p class="comentario">{{ r.comentario }}</p>
+                }
+                <p class="fecha">{{ formatearFecha(r.created_at) }}</p>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="seccion">
+      <h2>Películas que compré</h2>
+      @if (cargando()) {
+        <p>Cargando...</p>
+      } @else if (peliculasCompradas().length === 0) {
+        <p class="vacio">Todavía no compraste ninguna entrada.</p>
+      } @else {
+        <div class="grilla-peliculas">
+          @for (p of peliculasCompradas(); track p.id) {
+            <a class="pelicula-card" [routerLink]="['/pelicula', p.id]">
+              <img class="pelicula-imagen" [src]="getImagenUrl(p.imagen)" [alt]="p.nombre" />
+              <div class="pelicula-info">
+                <h3>{{ p.nombre }}</h3>
+                <p class="fecha">Comprada el {{ formatearFecha(p.fecha) }}</p>
+              </div>
+            </a>
+          }
+        </div>
+      }
+    </section>
+  </div>
+}

@@ -1,61 +1,108 @@
 <div class="main-container">
   <h1>Cartelera</h1>
 
-  <section class="seccion">
-    <h2>Las 3 más vendidas</h2>
-    <p class="placeholder">Próximamente...</p>
-  </section>
+  @if (cargando()) {
+    <p class="estado" role="status">Cargando cartelera...</p>
+  } @else {
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
 
-  <section class="seccion">
-    <h2>Listado de películas</h2>
+    <section class="seccion" aria-labelledby="titulo-mas-vendidas">
+      <h2 id="titulo-mas-vendidas">Las 3 más vendidas</h2>
+      @if (masVendidas().length === 0) {
+        <p class="placeholder">Todavía no hay películas en cartelera.</p>
+      } @else {
+        <div class="grilla-peliculas">
+          @for (item of masVendidas(); track item.pelicula.id) {
+            <ng-container
+              [ngTemplateOutlet]="tarjetaPelicula"
+              [ngTemplateOutletContext]="{ $implicit: item.pelicula, ventas: item.asientos }"
+            ></ng-container>
+          }
+        </div>
+      }
+    </section>
 
-    <div class="filtros">
-      <label>
-        Filtrar por género:
-        <select [(ngModel)]="generoFiltro" (ngModelChange)="generoFiltro.set($event)">
+    <section class="seccion" aria-labelledby="titulo-proximamente">
+      <h2 id="titulo-proximamente">Próximamente</h2>
+      @if (proximas().length === 0) {
+        <p class="placeholder">No hay estrenos próximos por ahora.</p>
+      } @else {
+        <div class="grilla-peliculas">
+          @for (pelicula of proximas(); track pelicula.id) {
+            <ng-container
+              [ngTemplateOutlet]="tarjetaPelicula"
+              [ngTemplateOutletContext]="{ $implicit: pelicula }"
+            ></ng-container>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="seccion" aria-labelledby="titulo-listado">
+      <h2 id="titulo-listado">Listado de películas</h2>
+
+      <div class="filtros">
+        <label for="filtro-genero">Filtrar por género:</label>
+        <select
+          id="filtro-genero"
+          [ngModel]="generoFiltro()"
+          (ngModelChange)="generoFiltro.set($event)"
+        >
           <option value="">Todos</option>
           @for (genero of generosDisponibles(); track genero) {
             <option [value]="genero">{{ genero }}</option>
           }
         </select>
-      </label>
-    </div>
+      </div>
 
-    @if (cargando()) {
-      <p>Cargando películas...</p>
-    } @else if (peliculasFiltradas().length === 0) {
-      <p>No hay películas para este género.</p>
-    } @else {
-      <div class="grilla-peliculas">
-        @for (pelicula of peliculasFiltradas(); track pelicula.id) {
-          <div class="pelicula-card" [routerLink]="['/pelicula', pelicula.id]">
-            <img
-              [src]="getImagenUrl(pelicula.imagen)"
-              [alt]="pelicula.nombre"
-              class="pelicula-imagen"
-            />
-            <div class="pelicula-info">
-              <h3>{{ pelicula.nombre }}</h3>
-              <p class="generos">{{ pelicula.generos.join(', ') }}</p>
-              <p class="duracion">{{ pelicula.duracion }} min</p>
-              <p class="restriccion">{{ pelicula.restriccion_edad }}</p>
-              <p class="puntuacion">★ {{ pelicula.puntuacion_promedio }}</p>
-            </div>
-          </div>
+      @if (peliculasFiltradas().length === 0) {
+        <p class="placeholder">No hay películas para este género.</p>
+      } @else {
+        <div class="grilla-peliculas">
+          @for (pelicula of peliculasFiltradas(); track pelicula.id) {
+            <ng-container
+              [ngTemplateOutlet]="tarjetaPelicula"
+              [ngTemplateOutletContext]="{ $implicit: pelicula }"
+            ></ng-container>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <section class="seccion" aria-labelledby="titulo-combos">
+    <h2 id="titulo-combos">Combos especiales</h2>
+    <p class="placeholder">Próximamente...</p>
+  </section>
+
+  <ng-template #tarjetaPelicula let-pelicula let-ventas="ventas">
+    <a class="pelicula-card" [routerLink]="['/pelicula', pelicula.id]">
+      <img
+        [src]="getImagenUrl(pelicula.imagen)"
+        [alt]="pelicula.nombre"
+        class="pelicula-imagen"
+      />
+      <div class="pelicula-info">
+        <h3>{{ pelicula.nombre }}</h3>
+        <p class="generos">{{ pelicula.generos.join(', ') }}</p>
+        <p class="duracion">{{ pelicula.duracion }} min</p>
+        <p class="restriccion">{{ pelicula.restriccion_edad }}</p>
+        <p class="puntuacion">★ {{ pelicula.puntuacion_promedio }}</p>
+
+        @if (ventas !== undefined) {
+          @if (ventas > 0) {
+            <p class="ventas">{{ ventas }} entradas vendidas</p>
+          } @else {
+            <p class="ventas sin-ventas">Sin ventas</p>
+          }
+        }
+
+        @if (pelicula.proximamente) {
+          <span class="badge-proximamente">Próximamente</span>
         }
       </div>
-    }
-  </section>
-
-  
-  <section class="seccion">
-    <h2>Combos especiales</h2>
-    <p class="placeholder">Próximamente...</p>
-  </section>
-
-
-  <section class="seccion">
-    <h2>Próximamente</h2>
-    <p class="placeholder">Próximamente...</p>
-  </section>
+    </a>
+  </ng-template>
 </div>

@@ -1,0 +1,145 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+label,
+legend {
+  font-weight: 600;
+  color: #333;
+}
+
+input[type='text'],
+input[type='number'],
+textarea,
+select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid #c40812;
+  outline-offset: 1px;
+}
+
+input[aria-invalid='true'] {
+  border-color: #b00020;
+}
+
+.ayuda {
+  margin: 0;
+  color: #555;
+  font-size: 0.8rem;
+}
+
+.error-campo {
+  margin: 0;
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.recordatorio {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-left: 4px solid #b26a00;
+  border-radius: 4px;
+  background: #fff8e1;
+  color: #5c3a00;
+  font-size: 0.85rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.campo-imagen {
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0;
+}
+
+.campo-imagen legend {
+  padding: 0 0.25rem;
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.preview img {
+  width: 80px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-primario,
+.btn-secundario {
+  padding: 0.55rem 1rem;
+  border-radius: 6px;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btn-primario {
+  background: #c40812;
+  color: #fff;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: #a0060e;
+}
+
+.btn-primario:disabled {
+  background: #d9a3a6;
+  cursor: not-allowed;
+}
+
+.btn-secundario {
+  background: #fff;
+  color: #333;
+  border-color: #bbb;
+}
+
+.btn-secundario:hover:not(:disabled) {
+  background: #f0f0f0;
+}

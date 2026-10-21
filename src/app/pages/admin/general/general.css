@@ -1,0 +1,182 @@
+.admin-general {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.encabezado h1 {
+  margin: 0 0 0.25rem 0;
+}
+
+.encabezado p {
+  margin: 0;
+  color: #555;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.alerta.error {
+  background: #fdecea;
+  color: #8a1c1c;
+  border: 1px solid #f5c2c0;
+}
+
+.alerta.exito {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #b7dfb9;
+}
+
+.seccion {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.seccion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.seccion-header h2 {
+  margin: 0;
+}
+
+.subtitulo {
+  margin: 0.25rem 0 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.form-contenedor {
+  margin-bottom: 1.25rem;
+}
+
+.estado {
+  color: #666;
+  font-style: italic;
+  margin: 0;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th,
+td {
+  padding: 0.65rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #555;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+.nombre {
+  font-weight: 600;
+}
+
+.miniatura {
+  width: 48px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #ddd;
+  display: block;
+}
+
+.miniatura.cuadrada {
+  height: 48px;
+}
+
+.sin-imagen {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge.cartelera,
+.badge.disponible {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.badge.proximamente,
+.badge.categoria {
+  background: #fff4e5;
+  color: #7a4a00;
+}
+
+.badge.agotado {
+  background: #fdecea;
+  color: #8a1c1c;
+}
+
+.btn-primario {
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: #c40812;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: #a0060e;
+}
+
+.btn-primario:disabled {
+  background: #d9a3a6;
+  cursor: not-allowed;
+}
+
+.btn-primario:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

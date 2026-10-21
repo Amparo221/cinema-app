@@ -6,4 +6,5 @@ export interface Resena {
   comentario: string | null;
   created_at: string;
   profiles?: { nombre: string; apellido: string };
+  peliculas?: { nombre: string; imagen: string | null };
 }

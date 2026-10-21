@@ -1,0 +1,146 @@
+<form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="campo">
+    <label for="pelicula-nombre">Nombre *</label>
+    <input
+      id="pelicula-nombre"
+      type="text"
+      formControlName="nombre"
+      autocomplete="off"
+      [attr.aria-invalid]="nombre.touched && nombre.invalid ? 'true' : null"
+      [attr.aria-describedby]="nombre.touched && nombre.invalid ? 'pelicula-nombre-error' : null"
+    />
+    @if (nombre.touched && nombre.invalid) {
+      <p id="pelicula-nombre-error" class="error-campo" role="alert">
+        El nombre es obligatorio.
+      </p>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="pelicula-sinopsis">Sinopsis *</label>
+    <textarea
+      id="pelicula-sinopsis"
+      formControlName="sinopsis"
+      rows="3"
+      [attr.aria-invalid]="sinopsis.touched && sinopsis.invalid ? 'true' : null"
+      [attr.aria-describedby]="sinopsis.touched && sinopsis.invalid ? 'pelicula-sinopsis-error' : null"
+    ></textarea>
+    @if (sinopsis.touched && sinopsis.invalid) {
+      <p id="pelicula-sinopsis-error" class="error-campo" role="alert">
+        La sinopsis es obligatoria.
+      </p>
+    }
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="pelicula-duracion">Duración (min) *</label>
+      <input
+        id="pelicula-duracion"
+        type="number"
+        min="30"
+        formControlName="duracion"
+        [attr.aria-invalid]="duracion.touched && duracion.invalid ? 'true' : null"
+        [attr.aria-describedby]="duracion.touched && duracion.invalid ? 'pelicula-duracion-error' : null"
+      />
+      @if (duracion.touched && duracion.invalid) {
+        <p id="pelicula-duracion-error" class="error-campo" role="alert">
+          La duración debe ser de al menos 30 minutos.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="pelicula-clasificacion">Clasificación</label>
+      <select id="pelicula-clasificacion" formControlName="restriccion_edad">
+        <option value="sin_restriccion">Sin restricción</option>
+        <option value="13+">13+</option>
+        <option value="16+">16+</option>
+        <option value="18+">18+</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="campo">
+    <label for="pelicula-generos">Géneros</label>
+    <input
+      id="pelicula-generos"
+      type="text"
+      formControlName="generos"
+      placeholder="Acción, Aventura"
+      [attr.aria-describedby]="
+        recordatorioGeneros()
+          ? 'pelicula-generos-ayuda pelicula-generos-recordatorio'
+          : 'pelicula-generos-ayuda'
+      "
+    />
+    <p id="pelicula-generos-ayuda" class="ayuda">
+      Separá los géneros con coma. Ejemplo: Acción, Aventura.
+    </p>
+    @if (recordatorioGeneros()) {
+      <p id="pelicula-generos-recordatorio" class="recordatorio" role="status">
+        Parece que ingresaste varios géneros sin separar. Usá comas para separarlos (ej.: Acción,
+        Aventura).
+      </p>
+    }
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="pelicula-precio">Precio preventa</label>
+      <input
+        id="pelicula-precio"
+        type="number"
+        min="0"
+        formControlName="precio_preventa"
+        [attr.aria-invalid]="precio.touched && precio.invalid ? 'true' : null"
+        [attr.aria-describedby]="precio.touched && precio.invalid ? 'pelicula-precio-error' : null"
+      />
+      @if (precio.touched && precio.hasError('min')) {
+        <p id="pelicula-precio-error" class="error-campo" role="alert">
+          El precio no puede ser negativo.
+        </p>
+      }
+    </div>
+
+    <label class="check">
+      <input type="checkbox" formControlName="proximamente" />
+      Próximamente
+    </label>
+  </div>
+
+  <fieldset class="campo campo-imagen">
+    <legend id="pelicula-imagen-legend">Imagen *</legend>
+    <input
+      #inputImagen
+      id="pelicula-imagen"
+      type="file"
+      aria-labelledby="pelicula-imagen-legend"
+      accept="image/png,image/jpeg,image/webp"
+      (change)="onImagenSeleccionada($event)"
+      [attr.aria-invalid]="errorImagen() ? 'true' : null"
+      [attr.aria-describedby]="errorImagen() ? 'pelicula-imagen-ayuda pelicula-imagen-error' : 'pelicula-imagen-ayuda'"
+    />
+    <p id="pelicula-imagen-ayuda" class="ayuda">PNG, JPG o WEBP. Máximo 5 MB.</p>
+    @if (errorImagen()) {
+      <p id="pelicula-imagen-error" class="error-campo" role="alert">{{ errorImagen() }}</p>
+    }
+    @if (previewImagen(); as preview) {
+      <div class="preview">
+        <img [src]="preview" alt="Vista previa de la imagen seleccionada" />
+        <button type="button" class="btn-secundario" (click)="quitarImagen(inputImagen)">
+          Quitar imagen
+        </button>
+      </div>
+    }
+  </fieldset>
+
+  <div class="acciones">
+    <button type="button" class="btn-secundario" (click)="cancelar.emit()" [disabled]="guardando()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-primario" [disabled]="guardando()" [attr.aria-busy]="guardando()">
+      {{ guardando() ? 'Guardando...' : 'Crear película' }}
+    </button>
+  </div>
+</form>

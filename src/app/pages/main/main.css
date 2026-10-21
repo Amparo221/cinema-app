@@ -18,11 +18,23 @@ h1 {
 }
 
 .placeholder {
-  color: #999;
+  color: #666;
   font-style: italic;
 }
 
+.estado {
+  color: #555;
+}
+
+.error {
+  color: #b00020;
+}
+
 .filtros {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
@@ -31,7 +43,6 @@ h1 {
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
-  margin-left: 0.5rem;
 }
 
 .grilla-peliculas {
@@ -41,15 +52,24 @@ h1 {
 }
 
 .pelicula-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  cursor: pointer;
 }
 
 .pelicula-card:hover {
   transform: translateY(-4px);
+}
+
+.pelicula-card:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 3px;
 }
 
 .pelicula-imagen {
@@ -75,16 +95,33 @@ h1 {
   font-size: 0.9rem;
 }
 
-.generos {
+.pelicula-info .generos {
   font-size: 0.85rem;
-  color: #888;
+  color: #666;
 }
 
-.puntuacion {
-  color: #f5a623;
+.pelicula-info .puntuacion {
+  color: #b45309;
   font-weight: bold;
 }
 
-.pelicula-card {
-  cursor: pointer;
+.pelicula-info .ventas {
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.pelicula-info .ventas.sin-ventas {
+  color: #666;
+  font-weight: 400;
+}
+
+.badge-proximamente {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
