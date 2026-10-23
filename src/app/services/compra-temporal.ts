@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { ItemCarrito } from '../models/producto-candy.model';
+import { Combo } from '../models/combo.model';
 
 export interface ResumenCompra {
   funcion_id: number;
@@ -8,6 +9,9 @@ export interface ResumenCompra {
   funcion_hora: string;
   sala_nombre: string;
   butacas: string[];
+  combo: Combo | null;
+  combo_plus: boolean;
+  puntos_combo: number;
   precio_butacas: number;
   descuento_primera_compra: number;
   descuento_cincuenta: number;

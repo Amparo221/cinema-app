@@ -7,6 +7,12 @@ import { SessionService } from '../../services/session';
 import { Pelicula } from '../../models/pelicula.model';
 import { Funcion } from '../../models/funcion.model';
 import { Resena } from '../../models/resena.model';
+import {
+  Combo,
+  motivoNoCanjeCombo,
+  nombreCombo,
+  puntosCombo,
+} from '../../models/combo.model';
 
 @Component({
   selector: 'app-pelicula',
@@ -24,7 +30,12 @@ export class PeliculaPage implements OnInit {
   pelicula = signal<Pelicula | null>(null);
   funciones = signal<Funcion[]>([]);
   resenas = signal<Resena[]>([]);
+  combo = signal<Combo | null>(null);
+  avisoCombo = signal<string | null>(null);
   cargando = signal(true);
+
+  readonly nombreCombo = nombreCombo;
+  readonly puntosCombo = puntosCombo;
 
   modalResenaAbierto = signal(false);
   nuevaEstrellas = signal(5);
@@ -55,7 +66,25 @@ export class PeliculaPage implements OnInit {
       this.router.navigate(['/main']);
       return;
     }
-    await this.cargarTodo(id);
+
+    const comboId = Number(this.route.snapshot.queryParamMap.get('combo'));
+    await Promise.all([
+      this.cargarTodo(id),
+      comboId ? this.cargarCombo(comboId) : Promise.resolve(),
+    ]);
+  }
+
+  private async cargarCombo(comboId: number) {
+    await this.session.cargarSesion();
+    const { data, error } = await this.supabase.getCombo(comboId);
+    if (error || !data) {
+      this.avisoCombo.set('El combo seleccionado ya no está disponible.');
+      return;
+    }
+
+    const combo = data as unknown as Combo;
+    this.combo.set(combo);
+    this.avisoCombo.set(motivoNoCanjeCombo(this.usuario(), combo));
   }
 
   async cargarTodo(id: number) {
@@ -77,7 +106,21 @@ export class PeliculaPage implements OnInit {
   }
 
   seleccionarFuncion(funcionId: number) {
-    this.router.navigate(['/compra', funcionId]);
+    const combo = this.combo();
+    const parametros = combo && !this.avisoCombo() ? { combo: combo.id } : undefined;
+    this.router.navigate(['/compra', funcionId], {
+      queryParams: parametros,
+    });
+  }
+
+  quitarCombo() {
+    this.combo.set(null);
+    this.avisoCombo.set(null);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { combo: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   abrirModalResena() {

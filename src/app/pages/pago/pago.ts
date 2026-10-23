@@ -1,65 +1,71 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+﻿import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase';
 import { SessionService } from '../../services/session';
 import { CompraTemporalService } from '../../services/compra-temporal';
+import { ReservaButacasService } from '../../services/reserva-butacas';
+import { cantidadPagada } from '../../models/producto-candy.model';
 
 type MetodoPago = 'transferencia' | 'tarjeta' | 'efectivo';
 
 @Component({
   selector: 'app-pago',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [],
   templateUrl: './pago.html',
   styleUrl: './pago.css',
 })
-export class Pago implements OnInit {
+export class Pago implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   private session = inject(SessionService);
   private compraTemporal = inject(CompraTemporalService);
+  private reserva = inject(ReservaButacasService);
   private router = inject(Router);
+  private compraConfirmada = false;
 
-  //recibe y muestra el resumen de la compra temporal
+  // Recibe y muestra el resumen de la compra temporal.
   resumen = this.compraTemporal.resumen;
 
   metodoPago = signal<MetodoPago>('tarjeta');
   usarCreditos = signal(false);
   procesando = signal(false);
   error = signal<string | null>(null);
+  volverAElegirVisible = signal(false);
 
   usuario = this.session.usuario;
 
-  //creditos del usuario actual
-  creditosDisponibles = computed(() => {
-    return this.usuario()?.creditos ?? 0;
-  });
+  // Creditos del usuario actual.
+  creditosDisponibles = computed(() => this.usuario()?.creditos ?? 0);
 
-  // Creditos aplicables
+  esCombo = computed(() => !!this.resumen()?.combo);
+
+  puntosCombo = computed(() => this.resumen()?.puntos_combo ?? 0);
+
+  pagoSoloPuntos = computed(() => this.esCombo() && this.totalFinal() === 0);
+
+  // Creditos aplicables.
   creditosAplicados = computed(() => {
     const r = this.resumen();
     if (!r) return 0;
     if (!this.usarCreditos()) return 0;
-    return Math.min(this.creditosDisponibles(), r.subtotal_con_descuentos);
+    const limite = r.combo ? r.total_candy : r.subtotal_con_descuentos;
+    return Math.min(this.creditosDisponibles(), limite);
   });
 
   totalFinal = computed(() => {
     const r = this.resumen();
     if (!r) return 0;
-    return Math.max(0, r.subtotal_con_descuentos - this.creditosAplicados());
+    const base = r.combo ? r.total_candy : r.subtotal_con_descuentos;
+    return Math.max(0, base - this.creditosAplicados());
   });
 
-  montoRestante = computed(() => {
-    return this.totalFinal();
-  });
+  montoRestante = computed(() => this.totalFinal());
 
   ngOnInit() {
     if (!this.resumen()) {
       this.router.navigate(['/main']);
       return;
     }
-    // Si el usuario ya venía con créditos activados, arrancamos con eso
+
     if (this.resumen()!.creditos_usados > 0) {
       this.usarCreditos.set(true);
     }
@@ -70,7 +76,7 @@ export class Pago implements OnInit {
   }
 
   toggleCreditos() {
-    this.usarCreditos.set(!this.usarCreditos());
+    this.usarCreditos.update(valor => !valor);
   }
 
   async confirmarPago() {
@@ -79,16 +85,27 @@ export class Pago implements OnInit {
 
     this.procesando.set(true);
     this.error.set(null);
+    this.volverAElegirVisible.set(false);
 
-    const u = this.usuario();
+    // La RPC actualiza puntos y créditos de forma atómica.
     const totalFinal = this.totalFinal();
-    const puntosSumados = u ? Math.round(totalFinal) : 0;
     const creditosUsados = this.creditosAplicados();
+    // 1 peso gastado = 1 punto. Se suman al total que ya tenia el perfil.
+    const carritoExtra = r.combo
+      ? r.carrito_candy
+          .map(item => ({
+            producto_id: item.producto.id,
+            cantidad: cantidadPagada(item, r.combo),
+          }))
+          .filter(item => item.cantidad > 0)
+      : [];
+    const metodoPago = r.combo && totalFinal === 0 ? 'puntos' : this.metodoPago();
 
-    // 1. Crear la compra
-    const { data: compra, error: errCompra } = await this.supabase.crearCompra({
-      usuario_id: u?.id ?? null,
+    // Una sola RPC atomica: crea la compra y convierte los bloqueos en ventas.
+    const { data: compraId, error: errCompra } = await this.supabase.crearCompraConButacas({
       funcion_id: r.funcion_id,
+      codigos: r.butacas,
+      sesion_id: this.reserva.sesionId,
       cantidad_butacas: r.butacas.length,
       precio_butacas: r.precio_butacas,
       precio_candy: r.total_candy,
@@ -96,48 +113,103 @@ export class Pago implements OnInit {
       descuento_cincuenta: r.descuento_cincuenta,
       creditos_usados: creditosUsados,
       total: totalFinal,
-      metodo_pago: this.metodoPago(),
+      metodo_pago: metodoPago,
+      combo_id: r.combo?.id ?? null,
+      carrito_extra: carritoExtra,
+      puntos_combo: r.combo ? r.puntos_combo : 0,
     });
 
-    if (errCompra || !compra) {
+    if (errCompra || !compraId) {
       this.procesando.set(false);
-      this.error.set(errCompra?.message ?? 'Error al crear la compra.');
+
+      const mensaje = errCompra?.message ?? '';
+      if (mensaje.includes('BUTACAS_NO_DISPONIBLES') || mensaje.includes('BUTACAS_INVALIDAS')) {
+        this.volverAElegirVisible.set(true);
+        this.error.set(
+          'Alguna de las butacas ya fue ocupada por otra persona. Volvé a elegir tus butacas.'
+        );
+      } else {
+        if (mensaje.includes('PUNTOS_INSUFICIENTES')) {
+          this.error.set('No te alcanzan los puntos para este combo. Revisá tu saldo.');
+        } else if (mensaje.includes('COMBO_REQUIERE_COMPRA_PREVIA')) {
+          this.error.set('Los combos se habilitan después de tu primera compra.');
+        } else if (
+          mensaje.includes('COMBO_ACTUALIZADO') ||
+          mensaje.includes('COMBO_NO_DISPONIBLE') ||
+          mensaje.includes('COMBO_INVALIDO')
+        ) {
+          this.volverAElegirVisible.set(true);
+          this.error.set('El combo cambió o ya no está disponible. Volvé a elegirlo.');
+        } else if (mensaje.includes('COMBO_UNA_BUTACA')) {
+          this.volverAElegirVisible.set(true);
+          this.error.set('El combo incluye exactamente una butaca. Volvé a elegir.');
+        } else if (mensaje.includes('CREDITOS_INVALIDOS')) {
+          this.error.set('Los créditos aplicados ya no están disponibles. Recargá la página.');
+        } else if (
+          mensaje.includes('CARRITO_INVALIDO') ||
+          mensaje.includes('TOTAL_INVALIDO')
+        ) {
+          this.error.set('El total del combo cambió. Recargá la página e intentá de nuevo.');
+        } else if (
+          mensaje.includes('USUARIO_REQUERIDO') ||
+          mensaje.includes('PERFIL_NO_ENCONTRADO')
+        ) {
+          this.error.set('Iniciá sesión nuevamente para comprar con puntos.');
+        } else {
+          this.error.set('No pudimos completar la compra. Intentá de nuevo.');
+        }
+      }
       return;
     }
 
-    // 2. Insertar butacas
-    const { error: errButacas } = await this.supabase.crearCompraButacas(
-      compra.id,
-      r.funcion_id,
-      r.butacas
-    );
-
-    if (errButacas) {
-      this.procesando.set(false);
-      this.error.set('Alguna butaca ya fue ocupada. Volvé a intentarlo.');
-      return;
-    }
-
-    // 3. Actualizar perfil del usuario si está logueado
-    if (u) {
-      const nuevosPuntos = u.puntos + puntosSumados;
-      const nuevosCreditos = u.creditos - creditosUsados;
-      await this.supabase.actualizarPerfilTrasCompra(u.id, nuevosPuntos, nuevosCreditos);
-      await this.session.cargarSesion();
+    // Actualizar perfil: puntos totales y creditos restantes.
+    if (this.usuario()) {
+      await this.session.recargarSesion();
+      // La RPC ya actualizó puntos, créditos y primera_compra.
+      // No se escribe el perfil desde el cliente.
+      // La sesión ya se recargó arriba.
     }
 
     this.procesando.set(false);
-
-    // 4. Limpiar resumen temporal y redirigir al recibo
     this.compraTemporal.limpiar();
-    this.router.navigate(['/recibo', compra.id]);
+    this.compraConfirmada = true;
+    await this.router.navigate(['/recibo', compraId]);
   }
 
-  cancelar() {
+  async cancelar() {
+    const r = this.resumen();
+    if (r) {
+      // Si el usuario abandona el pago, las butacas se liberan ya.
+      await this.reserva.liberar(r.funcion_id).catch(() => undefined);
+    }
+    this.compraTemporal.limpiar();
     this.router.navigate(['/main']);
   }
 
-  // Formatear fecha
+  async volverAElegir() {
+    const r = this.resumen();
+    if (!r) {
+      this.router.navigate(['/main']);
+      return;
+    }
+
+    // No liberamos: Compra va a restaurar los bloqueos de esta pestana.
+    this.compraTemporal.limpiar();
+    await this.router.navigate(['/compra', r.funcion_id], {
+      queryParams: r.combo ? { combo: r.combo.id } : undefined,
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.compraConfirmada) return;
+
+    // Salir del pago por cualquier medio libera las butacas de inmediato.
+    const r = this.resumen();
+    if (r) {
+      void this.reserva.liberar(r.funcion_id).catch(() => undefined);
+    }
+  }
+
   formatearFecha(fecha: string): string {
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });

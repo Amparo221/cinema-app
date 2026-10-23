@@ -7,8 +7,11 @@ import { SessionService } from '../../services/session';
 interface Canje {
   id: number;
   recompensa_id: number | null;
+  combo_id: number | null;
+  compra_id: string | null;
   puntos_usados: number;
   created_at: string;
+  combos?: { nombre: string } | null;
 }
 
 interface CompraHistorial {
@@ -16,6 +19,9 @@ interface CompraHistorial {
   total: number;
   estado: string;
   created_at: string;
+  combo_nombre: string | null;
+  combo_plus: boolean;
+  puntos_usados: number;
   funciones?: {
     fecha: string;
     hora: string;

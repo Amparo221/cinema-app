@@ -27,14 +27,34 @@
         <p>Presentá este código en la entrada</p>
       </div>
 
+      @if (compra()!.combo_id) {
+        <div class="recibo-combo">
+          <h2>{{ compra()!.combo_nombre }}</h2>
+          <ul>
+            @for (producto of compra()!.combo_productos ?? []; track producto.id) {
+              <li>{{ producto.cantidad }}x {{ producto.nombre }}</li>
+            }
+          </ul>
+          <p>{{ compra()!.puntos_usados }} puntos usados</p>
+          @if (compra()!.combo_plus) {
+            <span class="badge-combo">Combo Plus + (butaca VIP)</span>
+          }
+        </div>
+      }
+
+
       <div class="recibo-detalle">
         <div class="linea">
-          <span>Butacas ({{ compra()!.cantidad_butacas }})</span>
-          <span>${{ compra()!.precio_butacas }}</span>
+          <span>{{ compra()!.combo_id ? 'Butaca incluida en el combo' : 'Butacas (' + compra()!.cantidad_butacas + ')' }}</span>
+          @if (compra()!.combo_id) {
+            <span>{{ compra()!.puntos_usados }} puntos</span>
+          } @else {
+            <span>${{ compra()!.precio_butacas }}</span>
+          }
         </div>
         @if (compra()!.precio_candy > 0) {
           <div class="linea">
-            <span>Candy</span>
+            <span>{{ compra()!.combo_id ? 'Candy extra' : 'Candy' }}</span>
             <span>${{ compra()!.precio_candy }}</span>
           </div>
         }
@@ -85,7 +105,11 @@
         </p>
       } @else if (usuario() && compra()!.usuario_id === usuario()!.id && compra()!.estado === 'valida') {
         <p class="aviso-no-cancelable">
-          No podés cancelar esta compra (faltan menos de 2 horas para la función).
+          @if (compra()!.combo_id) {
+            Las compras con combo no se pueden cancelar.
+          } @else {
+            No podés cancelar esta compra (faltan menos de 2 horas para la función).
+          }
         </p>
       }
 

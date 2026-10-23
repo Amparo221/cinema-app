@@ -22,6 +22,20 @@ export interface NuevoProductoCandy {
   stock: number;
 }
 
+/** Combo listo para insertar o actualizar. */
+export interface NuevoCombo {
+  nombre: string;
+  descripcion: string | null;
+  producto_1_id: number;
+  producto_2_id: number;
+  puntos: number;
+  puntos_plus: number;
+  activo: boolean;
+}
+
+/** Datos del formulario de combo. */
+export type DatosCombo = NuevoCombo;
+
 /** Datos del formulario de película; la imagen se sube por separado. */
 export type DatosPelicula = Omit<NuevaPelicula, 'imagen'>;
 

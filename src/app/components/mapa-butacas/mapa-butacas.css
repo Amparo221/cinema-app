@@ -84,6 +84,22 @@
   opacity: 0.4;
 }
 
+.butaca.reservada {
+  background: #b45309 !important;
+  box-shadow: inset 0 0 0 2px #f59e0b;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.butaca:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.butaca:disabled:hover {
+  transform: none;
+}
+
 .leyenda {
   display: flex;
   gap: 1.5rem;
@@ -111,3 +127,4 @@
 .muestra.accesible { background: #1565c0; }
 .muestra.seleccionada { background: #2e7d32; }
 .muestra.ocupada { background: #2a2a2a; opacity: 0.4; }
+.muestra.reservada { background: #b45309; box-shadow: inset 0 0 0 1px #f59e0b; }

@@ -4,6 +4,81 @@
   padding-bottom: 180px; /* espacio para el footer fijo */
 }
 
+.combo-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  background: #fff5f5;
+  border-left: 4px solid #e50914;
+  border-radius: 6px;
+}
+
+.combo-banner h2 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.2rem;
+}
+
+.combo-banner p {
+  margin: 0.15rem 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.combo-banner .combo-costo {
+  color: #1c1c1c;
+  font-weight: 700;
+}
+
+.combo-banner .combo-plus {
+  color: #8a4b00;
+  font-weight: 600;
+}
+
+.btn-quitar-combo {
+  padding: 0.45rem 0.9rem;
+  background: #fff;
+  color: #b8070f;
+  border: 1px solid #b8070f;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aviso-combo {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  background: #fff3cd;
+  border-left: 4px solid #b45309;
+  border-radius: 6px;
+  color: #7c2d12;
+  font-size: 0.9rem;
+}
+
+.combo-puntos-linea {
+  color: #1c1c1c;
+  font-weight: 700;
+}
+
+.badge-combo {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.selector-cantidad button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .compra-header h1 {
   margin: 0;
 }
@@ -217,4 +292,30 @@
   color: #d32f2f;
   font-size: 0.85rem;
   margin: 0.5rem 0 0 0;
+}
+.btn-pagar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.estado-reserva {
+  margin: 0.75rem 0 0;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.aviso-butacas {
+  margin: 0.75rem 0 0;
+  padding: 0.85rem 1rem;
+  background: #fff3cd;
+  border-left: 4px solid #b45309;
+  border-radius: 6px;
+  color: #7c2d12;
+  font-size: 0.9rem;
+}
+
+.nota-reserva {
+  margin: 0.35rem 0 0;
+  color: #666;
+  font-size: 0.8rem;
 }

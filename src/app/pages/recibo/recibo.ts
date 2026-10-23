@@ -35,6 +35,7 @@ export class Recibo implements OnInit {
     if (!c || !u) return false;
     if (c.usuario_id !== u.id) return false;
     if (c.estado !== 'valida') return false;
+    if (c.combo_id) return false;
 
     const fechaFuncion = new Date(`${c.funciones?.fecha}T${c.funciones?.hora}`);
     const ahora = new Date();
@@ -46,7 +47,7 @@ export class Recibo implements OnInit {
   //la funcion de esto esta en supabase
   creditosDevolucion = computed(() => {
   const c = this.compra();
-  if (!c) return 0;
+  if (!c || c.combo_id) return 0;
   return c.precio_butacas - c.descuento_primera_compra - c.descuento_cincuenta;
   });
 

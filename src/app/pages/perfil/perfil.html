@@ -38,7 +38,13 @@
         <ul class="lista-canjes">
           @for (c of canjes(); track c.id) {
             <li>
-              <span>Recompensa #{{ c.recompensa_id }}</span>
+              <span>
+                @if (c.combo_id) {
+                  Combo {{ c.combos?.nombre ?? ('#' + c.combo_id) }}
+                } @else {
+                  Recompensa #{{ c.recompensa_id }}
+                }
+              </span>
               <span>{{ c.puntos_usados }} puntos</span>
               <span class="fecha">{{ formatearFecha(c.created_at) }}</span>
             </li>
@@ -57,6 +63,15 @@
             <li>
               <div>
                 <strong>{{ c.funciones?.peliculas?.nombre }}</strong>
+                @if (c.combo_nombre) {
+                  <p class="combo-historial">
+                    {{ c.combo_nombre }}
+                    @if (c.combo_plus) {
+                      <span class="badge-combo">Plus +</span>
+                    }
+                    · {{ c.puntos_usados }} puntos
+                  </p>
+                }
                 <p class="fecha">{{ formatearFecha(c.created_at) }}</p>
               </div>
               <div class="compra-derecha">

@@ -1,3 +1,5 @@
+import type { ProductoComboCompra } from './combo.model';
+
 export interface Compra {
   id: string;
   usuario_id: string | null;
@@ -13,6 +15,11 @@ export interface Compra {
   estado: 'valida' | 'usada' | 'cancelada';
   metodo_pago: string | null;
   created_at: string;
+  combo_id: number | null;
+  combo_nombre: string | null;
+  combo_plus: boolean;
+  combo_productos: ProductoComboCompra[] | null;
+  puntos_usados: number;
   funciones?: {
     fecha: string;
     hora: string;

@@ -16,6 +16,35 @@
       </div>
     </div>
 
+    @if (combo()) {
+      <section class="seccion combo-seleccionado" aria-labelledby="titulo-combo-seleccionado">
+        <div class="combo-cabecera">
+          <div>
+            <h2 id="titulo-combo-seleccionado">{{ combo()!.nombre }}</h2>
+            <p>
+              Incluye 1 butaca + {{ combo()!.producto_1?.nombre }} +
+              {{ combo()!.producto_2?.nombre }}
+            </p>
+            <p class="combo-costo">
+              {{ puntosCombo(combo()!) }} puntos (butaca VIP:
+              {{ puntosCombo(combo()!, true) }} puntos)
+            </p>
+          </div>
+          <button type="button" class="btn-quitar-combo" (click)="quitarCombo()">
+            Quitar combo
+          </button>
+        </div>
+
+        @if (avisoCombo()) {
+          <p class="aviso-combo" role="alert">{{ avisoCombo() }}</p>
+        } @else {
+          <p class="nota-combo">
+            Elegí una función para continuar. El combo incluye una sola butaca.
+          </p>
+        }
+      </section>
+    }
+
     <section class="seccion">
       <h2>Funciones</h2>
       @if (funcionesAgrupadas().length === 0) {

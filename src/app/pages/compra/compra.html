@@ -11,6 +11,33 @@
       </p>
     </header>
 
+    @if (combo()) {
+      <section class="combo-banner" aria-labelledby="titulo-combo-compra">
+        <div>
+          <h2 id="titulo-combo-compra">{{ nombreCombo(combo()!, comboPlus()) }}</h2>
+          <p>
+            Incluye 1 butaca + {{ combo()!.producto_1?.nombre }} +
+            {{ combo()!.producto_2?.nombre }}
+          </p>
+          <p class="combo-costo">{{ costoCombo() }} puntos</p>
+          @if (comboPlus()) {
+            <p class="combo-plus">
+              Elegiste una butaca VIP: se aplica el combo Plus + por
+              {{ combo()!.puntos_plus }} puntos.
+            </p>
+          }
+        </div>
+        <button type="button" class="btn-quitar-combo" (click)="quitarCombo()">
+          Quitar combo
+        </button>
+      </section>
+
+    }
+
+    @if (motivoCombo()) {
+      <p class="aviso-combo" role="alert">{{ motivoCombo() }}</p>
+    }
+
     @if (mostrarCartelEdad()) {
       <div class="cartel-edad">
         <strong>Atención:</strong>
@@ -39,14 +66,27 @@
     <div class="tab-contenido">
       @if (tabActual() === 'butacas') {
         <app-mapa-butacas
-          [butacasOcupadas]="butacasOcupadas()"
-          (seleccionCambiada)="onSeleccionCambiada($event)"
+          [butacasVendidas]="butacasVendidas()"
+          [butacasReservadas]="butacasReservadas()"
+          [seleccion]="butacasSeleccionadas()"
+          (seleccionChange)="onSeleccionCambiada($event)"
         />
+
+        @if (reservando()) {
+          <p class="estado-reserva" aria-live="polite">Reservando butacas...</p>
+        }
+
+        @if (avisoButacas()) {
+          <p class="aviso-butacas" role="alert">{{ avisoButacas() }}</p>
+        }
 
         @if (butacasSeleccionadas().length > 0) {
           <div class="resumen">
             <h3>Butacas seleccionadas</h3>
             <p>{{ butacasSeleccionadas().join(', ') }}</p>
+            <p class="nota-reserva">
+              Quedan reservadas 10 minutos. Si no completás la compra, se liberan solas.
+            </p>
           </div>
         }
       }
@@ -67,6 +107,9 @@
                 />
                 <div class="producto-info">
                   <h3>{{ producto.nombre }}</h3>
+                  @if (esProductoCombo(producto.id)) {
+                    <span class="badge-combo">Incluido en el combo</span>
+                  }
                   @if (producto.descripcion) {
                     <p class="descripcion">{{ producto.descripcion }}</p>
                   }
@@ -78,7 +121,12 @@
                     </button>
                   } @else {
                     <div class="selector-cantidad">
-                      <button (click)="quitarProducto(producto)">−</button>
+                      <button
+                        [disabled]="esProductoCombo(producto.id) && cantidadDe(producto.id) <= 1"
+                        (click)="quitarProducto(producto)"
+                      >
+                        −
+                      </button>
                       <span>{{ cantidadDe(producto.id) }}</span>
                       <button (click)="agregarProducto(producto)">+</button>
                     </div>
@@ -93,9 +141,24 @@
 
     <footer class="compra-footer">
       <div class="resumen-totales">
+        @if (combo()) {
+          <div class="total-linea combo-puntos-linea">
+            <span>{{ nombreCombo(combo()!, comboPlus()) }}</span>
+            <span>{{ costoCombo() }} puntos</span>
+          </div>
+          <div class="total-linea">
+            <span>Puntos disponibles</span>
+            <span>{{ usuario()?.puntos ?? 0 }}</span>
+          </div>
+        }
+
         <div class="total-linea">
           <span>Butacas ({{ butacasSeleccionadas().length }})</span>
-          <span>${{ precioButacas() }}</span>
+          @if (combo()) {
+            <span>Incluida en el combo</span>
+          } @else {
+            <span>${{ precioButacas() }}</span>
+          }
         </div>
 
         @if (descuentoPrimera() > 0) {
@@ -114,22 +177,24 @@
 
         @if (totalCandy() > 0) {
           <div class="total-linea">
-            <span>Candy ({{ cantidadItemsCandy() }})</span>
+            <span>{{ combo() ? 'Candy extra' : 'Candy (' + cantidadItemsCandy() + ')' }}</span>
             <span>${{ totalCandy() }}</span>
           </div>
         }
 
         <div class="total-linea total">
-          <span>Total</span>
+          <span>{{ combo() ? 'Total en dinero' : 'Total' }}</span>
           <span>${{ total() }}</span>
         </div>
 
         @if (errorCompra()) {
-          <p class="error">{{ errorCompra() }}</p>
+          <p class="error" role="alert">{{ errorCompra() }}</p>
         }
       </div>
 
-      <button class="btn-pagar" (click)="irAPagar()">Ir a pagar</button>
+      <button class="btn-pagar" [disabled]="reservando()" (click)="irAPagar()">
+        {{ reservando() ? 'Reservando...' : 'Ir a pagar' }}
+      </button>
     </footer>
   </div>
 }

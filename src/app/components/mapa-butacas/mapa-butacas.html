@@ -1,6 +1,5 @@
-<div class="mapa-container">
-
-  <div class="filas">
+﻿<div class="mapa-container">
+  <div class="filas" role="group" aria-label="Mapa de butacas">
     @for (fila of filas; track fila.letra) {
       <div class="fila">
         @for (butaca of fila.butacas; track butaca.codigo) {
@@ -12,8 +11,10 @@
             [class.vip]="butaca.tipo === 'vip'"
             [class.seleccionada]="estaSeleccionada(butaca.codigo)"
             [class.ocupada]="estaOcupada(butaca.codigo)"
+            [class.reservada]="estaReservada(butaca.codigo)"
             [disabled]="estaOcupada(butaca.codigo)"
-            [attr.aria-label]="'Butaca ' + butaca.codigo + ' - ' + butaca.tipo"
+            [attr.aria-label]="'Butaca ' + butaca.codigo + ' - ' + butaca.tipo + ' - ' + estadoTexto(butaca.codigo)"
+            [attr.aria-pressed]="estaSeleccionada(butaca.codigo)"
             [style.grid-column]="butaca.columna"
             (click)="toggleButaca(butaca)"
           >
@@ -38,9 +39,10 @@
       <span class="muestra seleccionada"></span> Seleccionada
     </div>
     <div class="leyenda-item">
-      <span class="muestra ocupada"></span> Ocupada
+      <span class="muestra reservada"></span> Reservada por otro usuario
+    </div>
+    <div class="leyenda-item">
+      <span class="muestra ocupada"></span> Vendida
     </div>
   </div>
-
-  
 </div>

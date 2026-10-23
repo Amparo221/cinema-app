@@ -39,6 +39,58 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+.combo-seleccionado {
+  padding: 1rem;
+  background: #fff5f5;
+  border-left: 4px solid #e50914;
+  border-radius: 6px;
+}
+
+.combo-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.combo-cabecera h2 {
+  margin: 0 0 0.35rem 0;
+}
+
+.combo-cabecera p {
+  margin: 0.15rem 0;
+  color: #555;
+}
+
+.combo-costo {
+  font-weight: 600;
+  color: #1c1c1c !important;
+}
+
+.btn-quitar-combo {
+  padding: 0.45rem 0.9rem;
+  background: #fff;
+  color: #b8070f;
+  border: 1px solid #b8070f;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aviso-combo {
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: #fff3cd;
+  color: #7c2d12;
+  border-radius: 4px;
+}
+
+.nota-combo {
+  margin-top: 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
 .grupo-fecha {
   margin-bottom: 1rem;
 }

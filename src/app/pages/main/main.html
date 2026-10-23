@@ -74,7 +74,60 @@
 
   <section class="seccion" aria-labelledby="titulo-combos">
     <h2 id="titulo-combos">Combos especiales</h2>
-    <p class="placeholder">Próximamente...</p>
+
+    @if (combos().length === 0) {
+      <p class="placeholder">No hay combos disponibles por ahora.</p>
+    } @else {
+      @if (avisoCombo()) {
+        <p class="error" role="alert">{{ avisoCombo() }}</p>
+      }
+
+      <div class="grilla-combos">
+        @for (combo of combos(); track combo.id) {
+          <article class="combo-card">
+            <h3>{{ nombreCombo(combo) }}</h3>
+            @if (combo.descripcion) {
+              <p class="combo-descripcion">{{ combo.descripcion }}</p>
+            }
+
+            <ul class="combo-productos">
+              @if (combo.producto_1) {
+                <li>{{ combo.producto_1.nombre }}</li>
+              }
+              @if (combo.producto_2) {
+                <li>{{ combo.producto_2.nombre }}</li>
+              }
+            </ul>
+
+            <p class="combo-puntos">
+              <strong>{{ puntosCombo(combo) }} puntos</strong>
+              <span>Butaca VIP: {{ puntosCombo(combo, true) }} puntos</span>
+            </p>
+
+            @if (peliculasEnCartelera().length > 0) {
+              <label [for]="'pelicula-combo-' + combo.id">Elegí una película</label>
+              <select
+                [id]="'pelicula-combo-' + combo.id"
+                [ngModel]="peliculaPorCombo()[combo.id]"
+                (ngModelChange)="seleccionarPeliculaCombo(combo.id, $event)"
+              >
+                @for (pelicula of peliculasEnCartelera(); track pelicula.id) {
+                  <option [ngValue]="pelicula.id">{{ pelicula.nombre }}</option>
+                }
+              </select>
+            }
+
+            <button type="button" class="btn-combo" (click)="irACombo(combo)">
+              {{ usuario() ? 'Comprar combo' : 'Iniciar sesión para comprar' }}
+            </button>
+
+            @if (usuario()?.primera_compra) {
+              <p class="nota-combo">Disponible después de tu primera compra.</p>
+            }
+          </article>
+        }
+      </div>
+    }
   </section>
 
   <ng-template #tarjetaPelicula let-pelicula let-ventas="ventas">

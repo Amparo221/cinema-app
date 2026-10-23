@@ -15,6 +15,22 @@
           <p>{{ resumen()!.sala_nombre }}</p>
         </div>
 
+        @if (resumen()!.combo) {
+          <div class="resumen-item combo-resumen">
+            <strong>{{ resumen()!.combo!.nombre }}</strong>
+            <ul>
+              @if (resumen()!.combo!.producto_1) {
+                <li>{{ resumen()!.combo!.producto_1!.nombre }}</li>
+              }
+              @if (resumen()!.combo!.producto_2) {
+                <li>{{ resumen()!.combo!.producto_2!.nombre }}</li>
+              }
+            </ul>
+            <p>{{ resumen()!.puntos_combo }} puntos por el combo</p>
+          </div>
+        }
+
+
         <div class="resumen-item">
           <strong>Butacas ({{ resumen()!.butacas.length }})</strong>
           <p>{{ resumen()!.butacas.join(', ') }}</p>
@@ -32,9 +48,21 @@
         }
 
         <div class="totales">
+          @if (resumen()!.combo) {
+            <div class="linea descuento">
+              <span>Combo (1 butaca + 2 candy)</span>
+              <span>{{ resumen()!.puntos_combo }} puntos</span>
+            </div>
+          }
+
+
           <div class="linea">
             <span>Butacas</span>
-            <span>${{ resumen()!.precio_butacas }}</span>
+            @if (resumen()!.combo) {
+              <span>Incluida en el combo</span>
+            } @else {
+              <span>${{ resumen()!.precio_butacas }}</span>
+            }
           </div>
 
           @if (resumen()!.descuento_primera_compra > 0) {
@@ -59,11 +87,11 @@
           }
 
           <div class="linea subtotal">
-            <span>Subtotal</span>
+            <span>{{ resumen()!.combo ? 'Subtotal en dinero' : 'Subtotal' }}</span>
             <span>${{ resumen()!.subtotal_con_descuentos }}</span>
           </div>
 
-          @if (resumen()!.creditos_disponibles > 0) {
+          @if (resumen()!.creditos_disponibles > 0 && (!resumen()!.combo || resumen()!.total_candy > 0)) {
             <div class="linea creditos">
               <label>
                 <input type="checkbox" [checked]="usarCreditos()" (change)="toggleCreditos()" />
@@ -76,7 +104,7 @@
           }
 
           <div class="linea total">
-            <span>Total a pagar</span>
+            <span>{{ resumen()!.combo ? 'Total en dinero' : 'Total a pagar' }}</span>
             <span>${{ totalFinal() }}</span>
           </div>
         </div>
@@ -85,6 +113,19 @@
       <!-- Columna derecha: método de pago -->
       <div class="metodo-pago">
         <h2>Método de pago</h2>
+
+        @if (resumen()!.combo) {
+          <p class="aviso-pago-total">
+            El combo usa {{ resumen()!.puntos_combo }} puntos.
+            @if (pagoSoloPuntos()) {
+              No se cobrará dinero adicional.
+            } @else {
+              El candy extra se cobra por separado con el método que elijas.
+            }
+          </p>
+        }
+
+        @if (!pagoSoloPuntos()) {
 
         <div class="opciones-pago">
           <button
@@ -115,6 +156,9 @@
           </button>
         </div>
 
+        }
+
+
         @if (montoRestante() === 0 && creditosAplicados() > 0) {
           <p class="aviso-pago-total">
             El total se cubre completamente con créditos. No se cobrará nada adicional.
@@ -122,10 +166,13 @@
         }
 
         @if (error()) {
-          <p class="error">{{ error() }}</p>
+          <p class="error" role="alert">{{ error() }}</p>
         }
 
         <div class="acciones">
+          @if (volverAElegirVisible()) {
+            <button class="btn-volver" (click)="volverAElegir()">Volver a elegir butacas</button>
+          }
           <button class="btn-cancelar" (click)="cancelar()">Cancelar</button>
           <button class="btn-confirmar" [disabled]="procesando()" (click)="confirmarPago()">
             {{ procesando() ? 'Procesando...' : 'Confirmar pago' }}

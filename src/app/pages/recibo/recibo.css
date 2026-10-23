@@ -54,6 +54,41 @@
   margin-top: 0.5rem;
 }
 
+.recibo-combo {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #fff5f5;
+  border-left: 4px solid #e50914;
+  border-radius: 6px;
+}
+
+.recibo-combo h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.recibo-combo ul {
+  margin: 0 0 0.5rem 1rem;
+  padding: 0;
+  color: #555;
+}
+
+.recibo-combo p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.badge-combo {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .recibo-detalle {
   border-top: 1px solid #eee;
   padding-top: 1rem;

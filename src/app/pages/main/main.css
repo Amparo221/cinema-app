@@ -115,6 +115,95 @@ h1 {
   font-weight: 400;
 }
 
+.grilla-combos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.combo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 2px solid #ffe0e2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.combo-card h3 {
+  margin: 0;
+  color: #b8070f;
+}
+
+.combo-descripcion {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.combo-productos {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #1c1c1c;
+  font-size: 0.9rem;
+}
+
+.combo-puntos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.combo-puntos strong {
+  color: #1c1c1c;
+  font-size: 1rem;
+}
+
+.combo-card label {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.combo-card select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.btn-combo {
+  margin-top: auto;
+  padding: 0.65rem;
+  background: #e50914;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-combo:hover {
+  background: #b8070f;
+}
+
+.btn-combo:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.nota-combo {
+  margin: 0;
+  color: #856404;
+  font-size: 0.8rem;
+}
+
 .badge-proximamente {
   display: inline-block;
   margin-top: 0.5rem;

@@ -32,6 +32,7 @@ yarn-error.log
 # Miscellaneous
 /.angular/cache
 .sass-cache/
+/supabase/.temp
 /connect.lock
 /coverage
 /libpeerconnection.log
@@ -39,6 +40,8 @@ testem.log
 /typings
 __screenshots__/
 .clinerules
+supabase
+docs
 
 # System files
 .DS_Store
