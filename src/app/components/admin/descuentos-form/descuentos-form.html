@@ -1,0 +1,55 @@
+<form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <p class="ayuda">
+    Se aplican sobre el precio de las butacas (nunca sobre candy) y son acumulables entre sí.
+  </p>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="descuento-primera">Descuento primera compra (%) *</label>
+      <input
+        id="descuento-primera"
+        type="number"
+        [min]="minimo"
+        [max]="maximo"
+        step="1"
+        formControlName="primeraCompra"
+        [attr.aria-invalid]="primeraCompra.touched && primeraCompra.invalid ? 'true' : null"
+        [attr.aria-describedby]="
+          primeraCompra.touched && primeraCompra.invalid ? 'descuento-primera-error' : null
+        "
+      />
+      @if (primeraCompra.touched && primeraCompra.invalid) {
+        <p id="descuento-primera-error" class="error-campo" role="alert">
+          Ingresá un porcentaje entre {{ minimo }} y {{ maximo }}.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="descuento-cincuenta">Descuento +50 años (%) *</label>
+      <input
+        id="descuento-cincuenta"
+        type="number"
+        [min]="minimo"
+        [max]="maximo"
+        step="1"
+        formControlName="cincuenta"
+        [attr.aria-invalid]="cincuenta.touched && cincuenta.invalid ? 'true' : null"
+        [attr.aria-describedby]="
+          cincuenta.touched && cincuenta.invalid ? 'descuento-cincuenta-error' : null
+        "
+      />
+      @if (cincuenta.touched && cincuenta.invalid) {
+        <p id="descuento-cincuenta-error" class="error-campo" role="alert">
+          Ingresá un porcentaje entre {{ minimo }} y {{ maximo }}.
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="acciones">
+    <button type="submit" class="btn-primario" [disabled]="guardando()" [attr.aria-busy]="guardando()">
+      {{ guardando() ? 'Guardando...' : 'Guardar descuentos' }}
+    </button>
+  </div>
+</form>

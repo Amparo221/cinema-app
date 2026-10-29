@@ -1,7 +1,7 @@
 <div class="admin-general">
   <header class="encabezado">
     <h1>General</h1>
-    <p>Administrá las películas y los productos del candy bar.</p>
+    <p>Administrá las películas, los productos del candy bar, las recompensas y los descuentos.</p>
   </header>
 
   @if (error()) {
@@ -31,7 +31,12 @@
 
     @if (mostrarFormPelicula()) {
       <div id="form-pelicula" class="form-contenedor">
+        <h3 class="form-titulo">
+          {{ peliculaEnEdicion() ? 'Editar película' : 'Nueva película' }}
+        </h3>
         <app-pelicula-form
+          [datosIniciales]="datosInicialesPelicula()"
+          [imagenActual]="imagenActualPelicula()"
           [guardando]="guardandoPelicula()"
           (guardar)="guardarPelicula($event)"
           (cancelar)="cerrarFormPelicula()"
@@ -44,7 +49,7 @@
     } @else if (peliculas().length === 0) {
       <p class="estado">Todavía no hay películas cargadas.</p>
     } @else {
-      <div class="tabla-scroll">
+      <div class="tabla-scroll" id="tabla-peliculas">
         <table>
           <caption class="sr-only">Películas existentes</caption>
           <thead>
@@ -55,12 +60,14 @@
               <th scope="col">Géneros</th>
               <th scope="col">Clasificación</th>
               <th scope="col">Precio preventa</th>
+              <th scope="col">Estreno</th>
               <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (pelicula of peliculas(); track pelicula.id) {
-              <tr>
+            @for (pelicula of peliculasVisibles(); track pelicula.id) {
+              <tr [class.en-edicion]="peliculaEnEdicion()?.id === pelicula.id">
                 <td>
                   @if (pelicula.imagen) {
                     <img
@@ -77,17 +84,45 @@
                 <td>{{ pelicula.generos.length > 0 ? pelicula.generos.join(', ') : '—' }}</td>
                 <td>{{ etiquetaRestriccion(pelicula.restriccion_edad) }}</td>
                 <td>{{ formatearPrecio(pelicula.precio_preventa) }}</td>
+                <td>{{ formatearFechaEstreno(pelicula.fecha_estreno) }}</td>
                 <td>
-                  @if (pelicula.proximamente) {
-                    <span class="badge proximamente">Próximamente</span>
-                  } @else {
-                    <span class="badge cartelera">En cartelera</span>
-                  }
+                  <span [class]="'badge ' + estadoClase(pelicula)">
+                    {{ estadoTexto(pelicula) }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    type="button"
+                    class="btn-editar"
+                    (click)="editarPelicula(pelicula)"
+                    [attr.aria-label]="'Editar ' + pelicula.nombre"
+                    aria-controls="form-pelicula"
+                    [attr.aria-expanded]="peliculaEnEdicion()?.id === pelicula.id"
+                  >
+                    Editar
+                  </button>
                 </td>
               </tr>
             }
           </tbody>
         </table>
+        @if (hayMasPeliculas()) {
+          <div class="tabla-pie">
+            <button
+              type="button"
+              class="btn-enlace"
+              (click)="alternarPeliculas()"
+              aria-controls="tabla-peliculas"
+              [attr.aria-expanded]="peliculasExpandidas()"
+            >
+              {{
+                peliculasExpandidas()
+                  ? 'Mostrar menos'
+                  : 'Mostrar todas (' + peliculas().length + ')'
+              }}
+            </button>
+          </div>
+        }
       </div>
     }
   </section>
@@ -125,7 +160,7 @@
     } @else if (productos().length === 0) {
       <p class="estado">Todavía no hay productos cargados.</p>
     } @else {
-      <div class="tabla-scroll">
+      <div class="tabla-scroll" id="tabla-candy">
         <table>
           <caption class="sr-only">Productos del candy bar</caption>
           <thead>
@@ -139,7 +174,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (producto of productos(); track producto.id) {
+            @for (producto of productosVisibles(); track producto.id) {
               <tr>
                 <td>
                   @if (producto.imagen) {
@@ -167,7 +202,158 @@
             }
           </tbody>
         </table>
+        @if (hayMasProductos()) {
+          <div class="tabla-pie">
+            <button
+              type="button"
+              class="btn-enlace"
+              (click)="alternarProductos()"
+              aria-controls="tabla-candy"
+              [attr.aria-expanded]="productosExpandidos()"
+            >
+              {{
+                productosExpandidos()
+                  ? 'Mostrar menos'
+                  : 'Mostrar todos (' + productos().length + ')'
+              }}
+            </button>
+          </div>
+        }
       </div>
     }
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-recompensas">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-recompensas">Recompensas</h2>
+        <p class="subtitulo">
+          {{ combos().length }} combos: 1 butaca + 2 productos de candy, pagados con puntos
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn-primario"
+        (click)="abrirFormCombo()"
+        [disabled]="mostrarFormCombo()"
+        aria-controls="form-combo"
+        [attr.aria-expanded]="mostrarFormCombo()"
+      >
+        Crear recompensa
+      </button>
+    </div>
+
+    @if (mostrarFormCombo()) {
+      <div id="form-combo" class="form-contenedor">
+        <h3 class="form-titulo">
+          {{ comboEnEdicion() ? 'Editar recompensa' : 'Nueva recompensa' }}
+        </h3>
+        <app-combo-form
+          [datosIniciales]="datosInicialesCombo()"
+          [productos]="productos()"
+          [guardando]="guardandoCombo()"
+          (guardar)="guardarCombo($event)"
+          (cancelar)="cerrarFormCombo()"
+        />
+      </div>
+    }
+
+    @if (cargando()) {
+      <p class="estado">Cargando recompensas...</p>
+    } @else if (combos().length === 0) {
+      <p class="estado">Todavía no hay recompensas cargadas.</p>
+    } @else {
+      <div class="tabla-scroll" id="tabla-recompensas">
+        <table>
+          <caption class="sr-only">Recompensas canjeables con puntos</caption>
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th>
+              <th scope="col">Productos incluidos</th>
+              <th scope="col">Puntos</th>
+              <th scope="col">Puntos Plus</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (combo of combosVisibles(); track combo.id) {
+              <tr [class.en-edicion]="comboEnEdicion()?.id === combo.id">
+                <td class="nombre">{{ combo.nombre }}</td>
+                <td>{{ etiquetaProductosCombo(combo) }}</td>
+                <td>{{ formatearPuntos(combo.puntos) }}</td>
+                <td>{{ formatearPuntos(combo.puntos_plus) }}</td>
+                <td>
+                  <span [class]="'badge ' + (combo.activo ? 'activa' : 'pausada')">
+                    {{ combo.activo ? 'Activa' : 'Pausada' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="acciones-fila">
+                    <button
+                      type="button"
+                      class="btn-editar"
+                      (click)="editarCombo(combo)"
+                      [attr.aria-label]="'Editar ' + combo.nombre"
+                      aria-controls="form-combo"
+                      [attr.aria-expanded]="comboEnEdicion()?.id === combo.id"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-secundario-chico"
+                      (click)="alternarActivoCombo(combo)"
+                      [disabled]="comboActualizando() !== null"
+                      [attr.aria-label]="(combo.activo ? 'Pausar ' : 'Activar ') + combo.nombre"
+                      [attr.aria-pressed]="combo.activo"
+                    >
+                      {{
+                        comboActualizando() === combo.id
+                          ? 'Guardando...'
+                          : combo.activo
+                            ? 'Pausar'
+                            : 'Activar'
+                      }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (hayMasCombos()) {
+          <div class="tabla-pie">
+            <button
+              type="button"
+              class="btn-enlace"
+              (click)="alternarCombos()"
+              aria-controls="tabla-recompensas"
+              [attr.aria-expanded]="combosExpandidos()"
+            >
+              {{ combosExpandidos() ? 'Mostrar menos' : 'Mostrar todas (' + combos().length + ')' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-descuentos">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-descuentos">Descuentos</h2>
+        <p class="subtitulo">
+          Primera compra {{ descuentosVigentes().primeraCompra }}% · +50 años
+          {{ descuentosVigentes().cincuenta }}%
+        </p>
+      </div>
+    </div>
+
+    <app-descuentos-form
+      [datosIniciales]="descuentosVigentes()"
+      [guardando]="guardandoDescuentos()"
+      (guardar)="guardarDescuentos($event)"
+    />
   </section>
 </div>

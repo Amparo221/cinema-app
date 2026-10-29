@@ -1,23 +1,48 @@
 import {
   Component,
   DestroyRef,
-  OnInit,
   computed,
+  effect,
   inject,
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  AbstractControl,
   NonNullableFormBuilder,
   ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { DatosPelicula, SalidaPelicula } from '../../../models/admin.model';
+import { fechaHoy } from '../../../models/preventa.model';
 
 const TIPOS_IMAGEN = ['image/png', 'image/jpeg', 'image/webp'];
 const TAMANIO_MAXIMO = 5 * 1024 * 1024;
+
+/** La fecha de estreno solo es obligatoria si la película es un estreno. */
+function validarFechaEstreno(control: AbstractControl): ValidationErrors | null {
+  if (control.parent?.get('proximamente')?.value !== true) return null;
+
+  const valor = String(control.value ?? '').trim();
+  if (!valor) return { requerido: true };
+  if (valor < fechaHoy()) return { pasada: true };
+
+  return null;
+}
+
+/** El precio de preventa debe ser mayor a cero si la película es un estreno. */
+function validarPrecioPreventa(control: AbstractControl): ValidationErrors | null {
+  if (control.parent?.get('proximamente')?.value !== true) return null;
+
+  const valor = Number(control.value);
+  if (!Number.isFinite(valor) || valor <= 0) return { requerido: true };
+
+  return null;
+}
 
 @Component({
   selector: 'app-pelicula-form',
@@ -25,13 +50,15 @@ const TAMANIO_MAXIMO = 5 * 1024 * 1024;
   templateUrl: './pelicula-form.html',
   styleUrl: './pelicula-form.css',
 })
-export class PeliculaForm implements OnInit {
+export class PeliculaForm {
   private fb = inject(NonNullableFormBuilder);
   private destroyRef = inject(DestroyRef);
 
   /** Permite precargar el formulario (por ejemplo, desde una propuesta). */
   datosIniciales = input<DatosPelicula | null>(null);
   guardando = input(false);
+  /** URL del póster actual; se usa como vista previa al editar sin archivo nuevo. */
+  imagenActual = input<string | null>(null);
 
   guardar = output<SalidaPelicula>();
   cancelar = output<void>();
@@ -42,13 +69,30 @@ export class PeliculaForm implements OnInit {
     duracion: [90, [Validators.required, Validators.min(30)]],
     generos: [''],
     restriccion_edad: ['sin_restriccion'],
-    precio_preventa: [0, [Validators.min(0)]],
+    precio_preventa: [0, [Validators.min(0), validarPrecioPreventa]],
+    fecha_estreno: ['', [validarFechaEstreno]],
     proximamente: [false],
   });
 
   private readonly valorGeneros = toSignal(this.form.controls.generos.valueChanges, {
     initialValue: this.form.controls.generos.value,
   });
+
+  /** Al cambiar el check, los campos de preventa cambian de obligatorios a opcionales. */
+  private readonly valorProximamente = toSignal(
+    this.form.controls.proximamente.valueChanges,
+    { initialValue: this.form.controls.proximamente.value }
+  );
+
+  readonly esEstreno = computed(() => this.valorProximamente() === true);
+
+  /** Con datos precargados el formulario edita; sin ellos, crea. */
+  readonly esEdicion = computed(() => this.datosIniciales() !== null);
+
+  /** Texto del botón principal. */
+  readonly textoGuardar = computed(() => (this.esEdicion() ? 'Guardar cambios' : 'Crear película'));
+
+  readonly hoy = fechaHoy();
 
   /** Aviso no bloqueante: más de 20 caracteres sin ninguna coma. */
   readonly recordatorioGeneros = computed(() => {
@@ -60,13 +104,56 @@ export class PeliculaForm implements OnInit {
   previewImagen = signal<string | null>(null);
   errorImagen = signal<string | null>(null);
 
+  /** Vista previa: el archivo elegido o, al editar sin archivo nuevo, el póster actual. */
+  readonly vistaPrevia = computed(() => this.previewImagen() ?? this.imagenActual());
+
   constructor() {
     this.destroyRef.onDestroy(() => this.revocarPreview());
+
+    // Los campos de preventa dependen del check "Próximamente".
+    this.form.controls.proximamente.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(proximamente => this.sincronizarCamposEstreno(proximamente));
+
+    // Sin marcar Próximamente, fecha y precio quedan visibles pero deshabilitados.
+    this.sincronizarCamposEstreno(this.form.controls.proximamente.value, false);
+
+    // Al editar, los datos se recargan cuando cambia la película seleccionada.
+    effect(() => {
+      const inicial = this.datosIniciales();
+      untracked(() => this.cargarDatosIniciales(inicial));
+    });
   }
 
-  ngOnInit() {
-    const inicial = this.datosIniciales();
+  /**
+   * Habilita fecha y precio solo cuando la película está marcada como Próximamente.
+   * Al desmarcar el check se descartan los datos del estreno anterior.
+   */
+  private sincronizarCamposEstreno(activo: boolean, limpiar = true) {
+    const { precio_preventa, fecha_estreno } = this.form.controls;
+
+    if (activo) {
+      precio_preventa.enable({ emitEvent: false });
+      fecha_estreno.enable({ emitEvent: false });
+    } else {
+      if (limpiar) {
+        precio_preventa.setValue(0, { emitEvent: false });
+        fecha_estreno.setValue('', { emitEvent: false });
+      }
+      precio_preventa.disable({ emitEvent: false });
+      fecha_estreno.disable({ emitEvent: false });
+    }
+
+    precio_preventa.updateValueAndValidity({ emitEvent: false });
+    fecha_estreno.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /** Precarga el formulario cuando se edita; al crear no hay datos iniciales. */
+  private cargarDatosIniciales(inicial: DatosPelicula | null) {
     if (!inicial) return;
+
+    this.limpiarImagen();
+    this.errorImagen.set(null);
 
     this.form.patchValue({
       nombre: inicial.nombre,
@@ -75,8 +162,12 @@ export class PeliculaForm implements OnInit {
       generos: inicial.generos.join(', '),
       restriccion_edad: inicial.restriccion_edad ?? 'sin_restriccion',
       precio_preventa: inicial.precio_preventa ?? 0,
+      fecha_estreno: inicial.fecha_estreno ?? '',
       proximamente: inicial.proximamente,
     });
+
+    // Respeta lo cargado: solo ajusta si los campos quedan habilitados o no.
+    this.sincronizarCamposEstreno(inicial.proximamente, false);
   }
 
   get nombre() {
@@ -93,6 +184,10 @@ export class PeliculaForm implements OnInit {
 
   get precio() {
     return this.form.controls.precio_preventa;
+  }
+
+  get estreno() {
+    return this.form.controls.fecha_estreno;
   }
 
   onImagenSeleccionada(event: Event) {
@@ -134,11 +229,14 @@ export class PeliculaForm implements OnInit {
     this.form.markAllAsTouched();
 
     const archivo = this.archivoImagen();
-    if (!archivo) {
+
+    // Al editar se puede conservar la imagen actual.
+    const faltaImagen = !archivo && !this.esEdicion();
+    if (faltaImagen) {
       this.errorImagen.set('La imagen es obligatoria.');
     }
 
-    if (this.form.invalid || !archivo) return;
+    if (this.form.invalid || faltaImagen) return;
 
     const valor = this.form.getRawValue();
 
@@ -152,7 +250,9 @@ export class PeliculaForm implements OnInit {
           .map(genero => genero.trim())
           .filter(Boolean),
         restriccion_edad: valor.restriccion_edad.trim() || null,
-        precio_preventa: valor.precio_preventa > 0 ? valor.precio_preventa : null,
+        precio_preventa:
+          valor.proximamente && valor.precio_preventa > 0 ? valor.precio_preventa : null,
+        fecha_estreno: valor.proximamente ? valor.fecha_estreno.trim() || null : null,
         proximamente: valor.proximamente,
       },
       archivo,

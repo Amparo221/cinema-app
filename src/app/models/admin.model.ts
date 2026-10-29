@@ -10,6 +10,8 @@ export interface NuevaPelicula {
   restriccion_edad: string | null;
   precio_preventa: number | null;
   proximamente: boolean;
+  /** Obligatoria cuando `proximamente` es true. */
+  fecha_estreno: string | null;
 }
 
 /** Producto de candy listo para insertar. `imagen` es el nombre del archivo en Storage. */
@@ -44,12 +46,17 @@ export type DatosProductoCandy = Omit<NuevoProductoCandy, 'imagen'>;
 
 export interface SalidaPelicula {
   datos: DatosPelicula;
-  archivo: File;
+  /** null cuando se edita y se conserva la imagen actual. */
+  archivo: File | null;
 }
 
 export interface SalidaProductoCandy {
   datos: DatosProductoCandy;
   archivo: File;
+}
+
+export interface SalidaCombo {
+  datos: NuevoCombo;
 }
 
 export interface ResultadoSubida {

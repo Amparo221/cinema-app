@@ -319,3 +319,13 @@
   color: #666;
   font-size: 0.8rem;
 }
+
+.nota-preventa {
+  margin: 0.4rem 0 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 0.8rem;
+}
+

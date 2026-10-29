@@ -1,0 +1,79 @@
+<div class="campanita" #contenedor>
+  <button
+    type="button"
+    class="btn-campanita"
+    [attr.aria-expanded]="abierto()"
+    aria-controls="panel-notificaciones"
+    [attr.aria-label]="etiquetaBoton()"
+    (click)="alternar()"
+  >
+    <span class="icono" aria-hidden="true">🔔</span>
+    @if (noLeidas() > 0) {
+      <span class="badge" aria-hidden="true">{{ noLeidas() > 9 ? '9+' : noLeidas() }}</span>
+    }
+  </button>
+
+  <p class="sr-only" role="status" aria-live="polite">{{ anuncio() }}</p>
+
+  @if (abierto()) {
+    <section
+      id="panel-notificaciones"
+      #panel
+      class="panel"
+      role="dialog"
+      aria-label="Notificaciones"
+      tabindex="-1"
+    >
+      <header class="panel-cabecera">
+        <h2>Notificaciones</h2>
+        <button type="button" class="btn-cerrar" aria-label="Cerrar notificaciones" (click)="cerrar()">
+          ✕
+        </button>
+      </header>
+
+      @if (error()) {
+        <p class="panel-error" role="alert">{{ error() }}</p>
+      }
+
+      @if (items().length === 0) {
+        <p class="panel-vacio" role="status">
+          {{ cargando() ? 'Buscando novedades...' : 'No tenés notificaciones por ahora.' }}
+        </p>
+      } @else {
+        <ul class="lista">
+          @for (notificacion of items(); track notificacion.id) {
+            <li>
+              <button
+                type="button"
+                class="item"
+                [class.sin-leer]="!notificacion.leida"
+                (click)="seleccionar(notificacion)"
+              >
+                <span class="item-titulo">
+                  @if (!notificacion.leida) {
+                    <span class="punto" aria-hidden="true"></span>
+                    <span class="sr-only">Sin leer: </span>
+                  }
+                  {{ notificacion.titulo }}
+                </span>
+                <span class="item-mensaje">{{ notificacion.mensaje }}</span>
+                <span class="item-fecha">{{ formatearFecha(notificacion.created_at) }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+
+        <footer class="panel-pie">
+          <button
+            type="button"
+            class="btn-marcar"
+            [disabled]="noLeidas() === 0"
+            (click)="marcarTodas()"
+          >
+            Marcar todas como leídas
+          </button>
+        </footer>
+      }
+    </section>
+  }
+</div>

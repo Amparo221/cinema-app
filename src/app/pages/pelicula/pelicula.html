@@ -13,6 +13,44 @@
         <p class="restriccion">{{ pelicula()!.restriccion_edad }}</p>
         <p class="puntuacion">★ {{ pelicula()!.puntuacion_promedio }}</p>
         <p class="sinopsis">{{ pelicula()!.sinopsis }}</p>
+
+        @if (esProxima()) {
+          <div class="preventa-caja">
+            @if (preventaActiva()) {
+              <span class="badge-preventa">Preventa abierta</span>
+              @if (formatearPrecio(pelicula()!.precio_preventa); as precio) {
+                <p>Entrada desde {{ precio }}. El día del estreno vuelven los precios de cartelera.</p>
+              }
+            } @else if (pelicula()!.fecha_estreno) {
+              <span class="badge-proximamente">Próximamente</span>
+              <p>Estreno: {{ formatearFecha(pelicula()!.fecha_estreno!) }}.</p>
+              @if (inicioPreventa(); as inicio) {
+                <p>Preventa desde el {{ formatearFecha(inicio) }}.</p>
+              }
+            } @else {
+              <span class="badge-proximamente">Fecha a confirmar</span>
+            }
+
+            @if (usuario()) {
+              <label class="check-aviso">
+                <input
+                  type="checkbox"
+                  [checked]="estaSuscrita(pelicula()!.id)"
+                  (change)="alternarAviso()"
+                />
+                Avisarme cuando abra la preventa
+              </label>
+            } @else {
+              <a class="aviso-login" [routerLink]="['/login']">
+                Iniciá sesión para avisarte
+              </a>
+            }
+
+            @if (avisoAviso()) {
+              <p class="aviso-aviso" role="status">{{ avisoAviso() }}</p>
+            }
+          </div>
+        }
       </div>
     </div>
 
@@ -47,6 +85,11 @@
 
     <section class="seccion">
       <h2>Funciones</h2>
+      @if (preventaActiva()) {
+        <p class="nota-preventa">
+          Estás comprando en preventa: se muestran las funciones desde el día del estreno.
+        </p>
+      }
       @if (funcionesAgrupadas().length === 0) {
         <p>No hay funciones disponibles.</p>
       } @else {

@@ -17,6 +17,18 @@ import {
   puntosCombo,
 } from '../../models/combo.model';
 import { esButacaVip } from '../../models/butaca.model';
+import {
+  CLAVE_DESCUENTO_CINCUENTA,
+  CLAVE_DESCUENTO_PRIMERA_COMPRA,
+  DESCUENTO_CINCUENTA_DEFAULT,
+  DESCUENTO_PRIMERA_COMPRA_DEFAULT,
+} from '../../models/descuento.model';
+import {
+  estaEnPreventa,
+  fechaHoy,
+  precioButacaBase,
+  precioButacaConPreventa,
+} from '../../models/preventa.model';
 import { CompraTemporalService } from '../../services/compra-temporal';
 import { ReservaButacasService } from '../../services/reserva-butacas';
 
@@ -85,18 +97,28 @@ export class Compra implements OnInit, OnDestroy {
     if (this.combo()) return 0;
     const butacas = this.butacasSeleccionadas();
     const cfg = this.config();
+    const enPreventa = this.preventaActiva();
+    const precioPreventa = this.precioPreventa();
     let total = 0;
     for (const codigo of butacas) {
       const fila = codigo.charAt(0);
-      if (['R', 'S', 'T'].includes(fila)) {
-        total += cfg['precio_butaca_vip'] ?? 15000;
-      } else if (['J', 'K'].includes(fila)) {
-        total += cfg['precio_butaca_accesible'] ?? 10000;
-      } else {
-        total += cfg['precio_butaca_normal'] ?? 10000;
-      }
+      total += enPreventa
+        ? precioButacaConPreventa(fila, cfg, precioPreventa)
+        : precioButacaBase(fila, cfg);
     }
     return total;
+  });
+
+  /** true si la pelicula se compra dentro de la ventana de preventa. */
+  preventaActiva = computed(() => {
+    const pelicula = this.pelicula();
+    return pelicula ? estaEnPreventa(pelicula, fechaHoy()) : false;
+  });
+
+  /** precio_preventa de la pelicula, o null si no esta configurado. */
+  precioPreventa = computed(() => {
+    const valor = Number(this.pelicula()?.precio_preventa ?? 0);
+    return valor > 0 ? valor : null;
   });
 
   totalCandy = computed(() => {
@@ -112,7 +134,7 @@ export class Compra implements OnInit, OnDestroy {
     const u = this.usuario();
     const cfg = this.config();
     if (this.combo() || !u || !u.primera_compra) return 0;
-    const pct = cfg['descuento_primera_compra'] ?? 20;
+    const pct = cfg[CLAVE_DESCUENTO_PRIMERA_COMPRA] ?? DESCUENTO_PRIMERA_COMPRA_DEFAULT;
     return Math.round(this.precioButacas() * pct / 100);
   });
 
@@ -123,7 +145,7 @@ export class Compra implements OnInit, OnDestroy {
     if (this.combo() || !u) return 0;
     const edad = this.calcularEdad(u.fecha_nacimiento);
     if (edad < 50) return 0;
-    const pct = cfg['descuento_cincuenta'] ?? 15;
+    const pct = cfg[CLAVE_DESCUENTO_CINCUENTA] ?? DESCUENTO_CINCUENTA_DEFAULT;
     return Math.round(this.precioButacas() * pct / 100);
   });
 

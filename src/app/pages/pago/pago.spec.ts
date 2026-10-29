@@ -165,4 +165,19 @@ describe('Pago', () => {
     expect(component.volverAElegirVisible()).toBe(true);
     expect(router.navigate).not.toHaveBeenCalled();
   });
+
+  it('explica si la base rechaza el método de pago del combo', async () => {
+    supabaseMock.crearCompraConButacas.mockResolvedValue({
+      data: null,
+      error: {
+        message:
+          'new row for relation "compras" violates check constraint "compras_metodo_pago_check"',
+      },
+    });
+
+    await component.confirmarPago();
+
+    expect(component.error()).toContain('método de pago');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
 });

@@ -145,6 +145,14 @@ export class Pago implements OnInit, OnDestroy {
           this.error.set('El combo incluye exactamente una butaca. Volvé a elegir.');
         } else if (mensaje.includes('CREDITOS_INVALIDOS')) {
           this.error.set('Los créditos aplicados ya no están disponibles. Recargá la página.');
+        } else if (mensaje.includes('PREVENTA_NO_INICIADA')) {
+          this.volverAElegirVisible.set(true);
+          this.error.set(
+            'La preventa de esta película todavía no abrió. Volvé a elegir otra función.'
+          );
+        } else if (mensaje.includes('FUNCION_NO_DISPONIBLE')) {
+          this.volverAElegirVisible.set(true);
+          this.error.set('Esa función ya no está a la venta. Volvé a elegir otra.');
         } else if (
           mensaje.includes('CARRITO_INVALIDO') ||
           mensaje.includes('TOTAL_INVALIDO')
@@ -155,7 +163,13 @@ export class Pago implements OnInit, OnDestroy {
           mensaje.includes('PERFIL_NO_ENCONTRADO')
         ) {
           this.error.set('Iniciá sesión nuevamente para comprar con puntos.');
+        } else if (mensaje.includes('compras_metodo_pago_check')) {
+          this.error.set(
+            'El método de pago del combo no está habilitado. Contactá al administrador.'
+          );
         } else {
+          // Deja el detalle tecnico en consola para diagnosticar errores de base.
+          console.error('Error al crear la compra:', errCompra);
           this.error.set('No pudimos completar la compra. Intentá de nuevo.');
         }
       }

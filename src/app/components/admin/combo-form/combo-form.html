@@ -1,0 +1,139 @@
+<form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <div class="campo">
+    <label for="combo-nombre">Nombre *</label>
+    <input
+      id="combo-nombre"
+      type="text"
+      formControlName="nombre"
+      autocomplete="off"
+      [attr.aria-invalid]="nombre.touched && nombre.invalid ? 'true' : null"
+      [attr.aria-describedby]="nombre.touched && nombre.invalid ? 'combo-nombre-error' : null"
+    />
+    @if (nombre.touched && nombre.invalid) {
+      <p id="combo-nombre-error" class="error-campo" role="alert">
+        El nombre es obligatorio.
+      </p>
+    }
+  </div>
+
+  <div class="campo">
+    <label for="combo-descripcion">Descripción</label>
+    <textarea id="combo-descripcion" formControlName="descripcion" rows="2"></textarea>
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="combo-producto-1">Producto 1 *</label>
+      <select
+        id="combo-producto-1"
+        formControlName="producto_1_id"
+        [attr.aria-invalid]="productoUno.touched && productoUno.invalid ? 'true' : null"
+        [attr.aria-describedby]="
+          productoUno.touched && productoUno.invalid ? 'combo-producto-1-error' : null
+        "
+      >
+        <option [ngValue]="null">Elegí un producto</option>
+        @for (producto of productos(); track producto.id) {
+          <option [ngValue]="producto.id">{{ producto.nombre }}</option>
+        }
+      </select>
+      @if (productoUno.touched && productoUno.hasError('required')) {
+        <p id="combo-producto-1-error" class="error-campo" role="alert">
+          Elegí el primer producto del combo.
+        </p>
+      } @else if (productoUno.touched && productoUno.hasError('repetido')) {
+        <p id="combo-producto-1-error" class="error-campo" role="alert">
+          Los dos productos del combo tienen que ser distintos.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="combo-producto-2">Producto 2 *</label>
+      <select
+        id="combo-producto-2"
+        formControlName="producto_2_id"
+        [attr.aria-invalid]="productoDos.touched && productoDos.invalid ? 'true' : null"
+        [attr.aria-describedby]="
+          productoDos.touched && productoDos.invalid ? 'combo-producto-2-error' : null
+        "
+      >
+        <option [ngValue]="null">Elegí un producto</option>
+        @for (producto of productos(); track producto.id) {
+          <option [ngValue]="producto.id">{{ producto.nombre }}</option>
+        }
+      </select>
+      @if (productoDos.touched && productoDos.hasError('required')) {
+        <p id="combo-producto-2-error" class="error-campo" role="alert">
+          Elegí el segundo producto del combo.
+        </p>
+      } @else if (productoDos.touched && productoDos.hasError('repetido')) {
+        <p id="combo-producto-2-error" class="error-campo" role="alert">
+          Los dos productos del combo tienen que ser distintos.
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="fila">
+    <div class="campo">
+      <label for="combo-puntos">Puntos *</label>
+      <input
+        id="combo-puntos"
+        type="number"
+        min="1"
+        step="1"
+        formControlName="puntos"
+        [attr.placeholder]="puntosSugeridos() > 0 ? puntosSugeridos() : null"
+        [attr.aria-invalid]="puntos.touched && puntos.invalid ? 'true' : null"
+        aria-describedby="combo-puntos-ayuda"
+      />
+      <p id="combo-puntos-ayuda" class="ayuda">
+        Costo con butaca normal. 1 peso = 1 punto.
+        @if (puntosSugeridos() > 0) {
+          Sugerido por precio de los productos: {{ puntosSugeridos() }} puntos.
+        }
+      </p>
+      @if (puntos.touched && puntos.invalid) {
+        <p class="error-campo" role="alert">Los puntos tienen que ser mayores a cero.</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="combo-puntos-plus">Puntos Plus *</label>
+      <input
+        id="combo-puntos-plus"
+        type="number"
+        min="1"
+        step="1"
+        formControlName="puntos_plus"
+        [attr.aria-invalid]="puntosPlus.touched && puntosPlus.invalid ? 'true' : null"
+        aria-describedby="combo-puntos-plus-ayuda"
+      />
+      <p id="combo-puntos-plus-ayuda" class="ayuda">
+        Costo con butaca VIP (filas R, S, T). Tiene que ser mayor al costo normal.
+      </p>
+      @if (puntosPlus.touched && puntosPlus.hasError('plusMenor')) {
+        <p class="error-campo" role="alert">
+          Los puntos Plus tienen que ser mayores a los puntos normales.
+        </p>
+      } @else if (puntosPlus.touched && puntosPlus.invalid) {
+        <p class="error-campo" role="alert">Los puntos Plus tienen que ser mayores a cero.</p>
+      }
+    </div>
+  </div>
+
+  <div class="campo campo-check">
+    <input id="combo-activo" type="checkbox" formControlName="activo" />
+    <label for="combo-activo">Recompensa activa (visible para los usuarios)</label>
+  </div>
+
+  <div class="acciones">
+    <button type="button" class="btn-secundario" (click)="cancelar.emit()" [disabled]="guardando()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-primario" [disabled]="guardando()" [attr.aria-busy]="guardando()">
+      {{ guardando() ? 'Guardando...' : textoGuardar() }}
+    </button>
+  </div>
+</form>

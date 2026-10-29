@@ -84,6 +84,23 @@ export class SupabaseService {
       .single();
   }
 
+  /** Edición desde /admin/general; `imagen` es el archivo vigente. */
+  async actualizarPelicula(id: number, datos: Partial<NuevaPelicula>) {
+    const { data, error } = await this.supabase
+      .from('peliculas')
+      .update(datos)
+      .eq('id', id)
+      .select();
+
+    if (error) return { data: null, error };
+    // Sin filas afectadas la policy RLS frenó el update: no es un error de Postgres.
+    if (!data || data.length === 0) {
+      return { data: null, error: { message: 'PELICULA_NO_ACTUALIZADA' } };
+    }
+
+    return { data: data[0], error: null };
+  }
+
   async getFuncionesDePelicula(peliculaId: number) {
     return this.supabase
       .from('funciones')
@@ -181,21 +198,33 @@ export class SupabaseService {
   }
 
   async actualizarCombo(id: number, datos: Partial<NuevoCombo>) {
-    return this.supabase
+    const { data, error } = await this.supabase
       .from('combos')
       .update(datos)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
+
+    if (error) return { data: null, error };
+    if (!data || data.length === 0) {
+      return { data: null, error: { message: 'COMBO_NO_ACTUALIZADO' } };
+    }
+
+    return { data: data[0], error: null };
   }
 
   async cambiarActivoCombo(id: number, activo: boolean) {
-    return this.supabase
+    const { data, error } = await this.supabase
       .from('combos')
       .update({ activo })
       .eq('id', id)
-      .select()
-      .single();
+      .select();
+
+    if (error) return { data: null, error };
+    if (!data || data.length === 0) {
+      return { data: null, error: { message: 'COMBO_NO_ACTUALIZADO' } };
+    }
+
+    return { data: data[0], error: null };
   }
 
   async subirImagen(
@@ -242,12 +271,20 @@ export class SupabaseService {
   }
 
   async getConfiguracion(): Promise<Record<string, number>> {
-  const { data, error } = await this.supabase.from('configuracion').select('*');
-  if (error || !data) return {};
-  const config: Record<string, number> = {};
-  for (const fila of data) config[fila.clave] = Number(fila.valor);
-  return config;
-}
+    const { data, error } = await this.supabase.from('configuracion').select('*');
+    if (error || !data) return {};
+    const config: Record<string, number> = {};
+    for (const fila of data) config[fila.clave] = Number(fila.valor);
+    return config;
+  }
+
+  /** RPC: guarda los porcentajes de descuento (solo admin). */
+  async guardarDescuentos(primeraCompra: number, cincuenta: number) {
+    return this.supabase.rpc('guardar_descuentos', {
+      p_primera_compra: primeraCompra,
+      p_cincuenta: cincuenta,
+    });
+  }
 
   /** RPC: estado de todas las butacas de una funcion. */
   async getEstadoButacas(funcionId: number, sesionId: string) {
@@ -429,5 +466,50 @@ export class SupabaseService {
       `)
       .eq('usuario_id', usuarioId)
       .order('created_at', { ascending: false });
+  }
+
+  // --- Notificaciones y preventa ---
+
+  /** Bandeja de la campanita, de la más nueva a la más vieja. */
+  async getNotificaciones(usuarioId: string) {
+    return this.supabase
+      .from('notificaciones')
+      .select('id, usuario_id, pelicula_id, tipo, titulo, mensaje, leida, created_at')
+      .eq('usuario_id', usuarioId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+  }
+
+  /** Películas a las que el usuario pidió que le avisen. */
+  async getSuscripcionesPreventa(usuarioId: string) {
+    return this.supabase
+      .from('suscripciones_preventa')
+      .select('pelicula_id')
+      .eq('usuario_id', usuarioId);
+  }
+
+  async suscribirPreventa(peliculaId: number) {
+    return this.supabase.rpc('suscribir_preventa', { p_pelicula_id: peliculaId });
+  }
+
+  async cancelarSuscripcionPreventa(peliculaId: number) {
+    return this.supabase.rpc('cancelar_suscripcion_preventa', {
+      p_pelicula_id: peliculaId,
+    });
+  }
+
+  /** RPC: crea las notificaciones de preventa que ya corresponden al usuario. */
+  async generarNotificacionesPreventa() {
+    return this.supabase.rpc('generar_notificaciones_preventa');
+  }
+
+  async marcarNotificacionLeida(id: number) {
+    return this.supabase.rpc('marcar_notificacion_leida', {
+      p_notificacion_id: id,
+    });
+  }
+
+  async marcarTodasNotificacionesLeidas() {
+    return this.supabase.rpc('marcar_todas_notificaciones_leidas');
   }
 }

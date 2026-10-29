@@ -9,4 +9,6 @@ export interface Pelicula {
   precio_preventa: number | null;
   puntuacion_promedio: number;
   proximamente: boolean;
+  /** Fecha de estreno (yyyy-mm-dd). Null mientras no esté programada. */
+  fecha_estreno: string | null;
 }

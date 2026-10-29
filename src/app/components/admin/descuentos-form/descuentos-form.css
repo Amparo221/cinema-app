@@ -1,0 +1,82 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+}
+
+input[type='number'] {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid #c40812;
+  outline-offset: 1px;
+}
+
+input[aria-invalid='true'] {
+  border-color: #b00020;
+}
+
+.ayuda {
+  margin: 0;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.error-campo {
+  margin: 0;
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-primario {
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 6px;
+  background: #c40812;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: #a0060e;
+}
+
+.btn-primario:disabled {
+  background: #d9a3a6;
+  cursor: not-allowed;
+}

@@ -3,4 +3,7 @@
   <main class="contenido">
     <router-outlet />
   </main>
+  @if (usuario()) {
+    <app-campanita />
+  }
 </div>

@@ -161,6 +161,12 @@
           }
         </div>
 
+        @if (preventaActiva() && !combo()) {
+          <p class="nota-preventa">
+            Entrada de preventa: el día del estreno vuelven los precios de cartelera.
+          </p>
+        }
+
         @if (descuentoPrimera() > 0) {
           <div class="total-linea descuento">
             <span>Descuento primera compra</span>

@@ -63,6 +63,12 @@
   margin-bottom: 1.25rem;
 }
 
+.form-titulo {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
 .estado {
   color: #666;
   font-style: italic;
@@ -145,6 +151,74 @@ tbody tr:hover {
   color: #8a1c1c;
 }
 
+.badge.activa {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.badge.pausada {
+  background: #eceff1;
+  color: #455a64;
+}
+
+.tabla-pie {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0 0 0;
+  border-top: 1px solid #eee;
+}
+
+.btn-enlace {
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #a0060e;
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-enlace:hover {
+  color: #7a040a;
+}
+
+.btn-enlace:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+}
+
+.acciones-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-secundario-chico {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-secundario-chico:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.btn-secundario-chico:disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
+.btn-secundario-chico:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+}
+
 .btn-primario {
   padding: 0.55rem 1rem;
   border: 0;
@@ -168,6 +242,36 @@ tbody tr:hover {
   outline: 2px solid #333;
   outline-offset: 2px;
 }
+
+.btn-editar {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-editar:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.btn-editar:focus-visible {
+  outline: 2px solid #333;
+  outline-offset: 2px;
+}
+
+tbody tr.en-edicion {
+  background: #fff7f7;
+}
+
+.badge.preventa {
+  background: #ffe0e2;
+  color: #b8070f;
+}
+
 
 .sr-only {
   position: absolute;

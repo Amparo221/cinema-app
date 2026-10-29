@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../services/supabase';
 import { SessionService } from '../../services/session';
+import { NotificacionesService } from '../../services/notificaciones';
 import { Pelicula } from '../../models/pelicula.model';
 import {
   Combo,
@@ -11,6 +12,12 @@ import {
   nombreCombo,
   puntosCombo,
 } from '../../models/combo.model';
+import {
+  esProximamente,
+  estaEnPreventa,
+  fechaHoy,
+  fechaInicioPreventa,
+} from '../../models/preventa.model';
 
 interface PeliculaVendida {
   pelicula: Pelicula;
@@ -26,6 +33,7 @@ interface PeliculaVendida {
 export class Main implements OnInit {
   private supabase = inject(SupabaseService);
   private session = inject(SessionService);
+  private notificaciones = inject(NotificacionesService);
   private router = inject(Router);
 
   peliculas = signal<Pelicula[]>([]);
@@ -36,14 +44,25 @@ export class Main implements OnInit {
   cargando = signal(true);
   error = signal<string | null>(null);
   avisoCombo = signal<string | null>(null);
+  avisoAviso = signal<string | null>(null);
+
+  /** Fecha de hoy congelada al cargar la cartelera. */
+  readonly hoy = fechaHoy();
 
   usuario = this.session.usuario;
+  suscripciones = this.notificaciones.suscripciones;
 
   readonly nombreCombo = nombreCombo;
   readonly puntosCombo = puntosCombo;
 
+  private readonly formatoMoneda = new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    maximumFractionDigits: 0,
+  });
+
   peliculasEnCartelera = computed(() =>
-    this.peliculas().filter(pelicula => !pelicula.proximamente)
+    this.peliculas().filter(pelicula => !esProximamente(pelicula, this.hoy))
   );
 
   generosDisponibles = computed(() => {
@@ -60,7 +79,7 @@ export class Main implements OnInit {
   });
 
   proximas = computed(() =>
-    this.peliculas().filter(pelicula => pelicula.proximamente)
+    this.peliculas().filter(pelicula => esProximamente(pelicula, this.hoy))
   );
 
   masVendidas = computed<PeliculaVendida[]>(() => {
@@ -160,5 +179,61 @@ export class Main implements OnInit {
 
   getImagenUrl(nombreArchivo: string | null): string {
     return this.supabase.getPeliculaImageUrl(nombreArchivo);
+  }
+
+  /** true si la película todavía no se estrenó (manda la fecha de estreno). */
+  esProximamente(pelicula: Pelicula): boolean {
+    return esProximamente(pelicula, this.hoy);
+  }
+
+  estaEnPreventa(pelicula: Pelicula): boolean {
+    return estaEnPreventa(pelicula, this.hoy);
+  }
+
+  estaSuscrita(peliculaId: number): boolean {
+    return this.suscripciones().has(peliculaId);
+  }
+
+  /** Primer día de preventa de la película, o null si no tiene fecha. */
+  inicioPreventa(pelicula: Pelicula): string | null {
+    return fechaInicioPreventa(pelicula.fecha_estreno);
+  }
+
+  async alternarAviso(pelicula: Pelicula) {
+    this.avisoAviso.set(null);
+
+    if (!this.usuario()) {
+      await this.router.navigate(['/login']);
+      return;
+    }
+
+    const ok = await this.notificaciones.alternarSuscripcion(pelicula.id);
+    if (!ok) {
+      this.avisoAviso.set(
+        this.notificaciones.error() ?? 'No pudimos guardar tu preferencia.'
+      );
+      return;
+    }
+
+    this.avisoAviso.set(
+      this.estaSuscrita(pelicula.id)
+        ? `Listo: te avisamos cuando abra la preventa de ${pelicula.nombre}.`
+        : `No te vamos a avisar por ${pelicula.nombre}.`
+    );
+  }
+
+  formatearFecha(fecha: string | null): string {
+    if (!fecha) return 'Fecha a confirmar';
+    const valor = new Date(`${fecha}T00:00:00`);
+    if (Number.isNaN(valor.getTime())) return 'Fecha a confirmar';
+    return valor.toLocaleDateString('es-AR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  formatearPrecio(valor: number | null): string {
+    return valor === null || valor <= 0 ? '' : this.formatoMoneda.format(valor);
   }
 }

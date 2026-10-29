@@ -85,32 +85,78 @@
     }
   </div>
 
-  <div class="fila">
-    <div class="campo">
-      <label for="pelicula-precio">Precio preventa</label>
-      <input
-        id="pelicula-precio"
-        type="number"
-        min="0"
-        formControlName="precio_preventa"
-        [attr.aria-invalid]="precio.touched && precio.invalid ? 'true' : null"
-        [attr.aria-describedby]="precio.touched && precio.invalid ? 'pelicula-precio-error' : null"
-      />
-      @if (precio.touched && precio.hasError('min')) {
-        <p id="pelicula-precio-error" class="error-campo" role="alert">
-          El precio no puede ser negativo.
-        </p>
-      }
-    </div>
+  <fieldset class="campo-grupo">
+    <legend>Estreno y preventa</legend>
 
     <label class="check">
-      <input type="checkbox" formControlName="proximamente" />
+      <input
+        type="checkbox"
+        formControlName="proximamente"
+        aria-describedby="pelicula-proximamente-ayuda"
+      />
       Próximamente
     </label>
-  </div>
+    <p id="pelicula-proximamente-ayuda" class="ayuda">
+      @if (esEstreno()) {
+        La preventa abre sola 7 días antes de la fecha de estreno y se cierra al estrenarse.
+      } @else {
+        Marcá esta opción para habilitar la fecha de estreno y el precio de preventa.
+      }
+    </p>
+
+    <div class="fila">
+      <div class="campo">
+        <label for="pelicula-precio">Precio preventa</label>
+        <input
+          id="pelicula-precio"
+          type="number"
+          min="0"
+          formControlName="precio_preventa"
+          [attr.aria-invalid]="precio.touched && precio.invalid ? 'true' : null"
+          [attr.aria-describedby]="precio.touched && precio.invalid ? 'pelicula-precio-error' : null"
+        />
+        @if (precio.touched && precio.hasError('min')) {
+          <p id="pelicula-precio-error" class="error-campo" role="alert">
+            El precio no puede ser negativo.
+          </p>
+        } @else if (precio.touched && precio.hasError('requerido')) {
+          <p id="pelicula-precio-error" class="error-campo" role="alert">
+            El precio de preventa es obligatorio para un estreno.
+          </p>
+        } @else if (esEstreno()) {
+          <p class="ayuda">Tiene que ser mayor al precio normal de la butaca.</p>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="pelicula-estreno">Fecha de estreno</label>
+        <input
+          id="pelicula-estreno"
+          type="date"
+          formControlName="fecha_estreno"
+          [min]="hoy"
+          [attr.aria-invalid]="estreno.touched && estreno.invalid ? 'true' : null"
+          [attr.aria-describedby]="
+            estreno.touched && estreno.invalid ? 'pelicula-estreno-error' : null
+          "
+        />
+        @if (estreno.touched && estreno.hasError('requerido')) {
+          <p id="pelicula-estreno-error" class="error-campo" role="alert">
+            La fecha de estreno es obligatoria para un estreno.
+          </p>
+        } @else if (estreno.touched && estreno.hasError('pasada')) {
+          <p id="pelicula-estreno-error" class="error-campo" role="alert">
+            La fecha de estreno no puede ser anterior a hoy.
+          </p>
+        } @else if (esEstreno()) {
+          <p class="ayuda">La preventa abre 7 días antes de esta fecha.</p>
+        }
+      </div>
+    </div>
+  </fieldset>
 
   <fieldset class="campo campo-imagen">
-    <legend id="pelicula-imagen-legend">Imagen *</legend>
+    <legend id="pelicula-imagen-legend">Imagen @if (!esEdicion()) { * }</legend>
     <input
       #inputImagen
       id="pelicula-imagen"
@@ -121,16 +167,24 @@
       [attr.aria-invalid]="errorImagen() ? 'true' : null"
       [attr.aria-describedby]="errorImagen() ? 'pelicula-imagen-ayuda pelicula-imagen-error' : 'pelicula-imagen-ayuda'"
     />
-    <p id="pelicula-imagen-ayuda" class="ayuda">PNG, JPG o WEBP. Máximo 5 MB.</p>
+    <p id="pelicula-imagen-ayuda" class="ayuda">
+      @if (esEdicion()) {
+        Dejá el archivo vacío para conservar la imagen actual. PNG, JPG o WEBP. Máximo 5 MB.
+      } @else {
+        PNG, JPG o WEBP. Máximo 5 MB.
+      }
+    </p>
     @if (errorImagen()) {
       <p id="pelicula-imagen-error" class="error-campo" role="alert">{{ errorImagen() }}</p>
     }
-    @if (previewImagen(); as preview) {
+    @if (vistaPrevia(); as preview) {
       <div class="preview">
-        <img [src]="preview" alt="Vista previa de la imagen seleccionada" />
-        <button type="button" class="btn-secundario" (click)="quitarImagen(inputImagen)">
-          Quitar imagen
-        </button>
+        <img [src]="preview" alt="Vista previa de la imagen de la película" />
+        @if (archivoImagen()) {
+          <button type="button" class="btn-secundario" (click)="quitarImagen(inputImagen)">
+            Quitar imagen
+          </button>
+        }
       </div>
     }
   </fieldset>
@@ -140,7 +194,7 @@
       Cancelar
     </button>
     <button type="submit" class="btn-primario" [disabled]="guardando()" [attr.aria-busy]="guardando()">
-      {{ guardando() ? 'Guardando...' : 'Crear película' }}
+      {{ guardando() ? 'Guardando...' : textoGuardar() }}
     </button>
   </div>
 </form>

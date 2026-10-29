@@ -1,0 +1,224 @@
+:host {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  z-index: 1000;
+}
+
+.campanita {
+  position: relative;
+}
+
+.btn-campanita {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn-campanita:hover {
+  background: #f7f7f7;
+}
+
+.btn-campanita:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e50914;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: 320px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  color: #1c1c1c;
+}
+
+.panel:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.panel-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.panel-cabecera h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.btn-cerrar {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+  color: #555;
+}
+
+.btn-cerrar:hover {
+  background: #f0f0f0;
+}
+
+.btn-cerrar:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.panel-vacio {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  color: #666;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.panel-error {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  background: #fdecea;
+  color: #b00020;
+  font-size: 0.85rem;
+}
+
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.lista li + li {
+  border-top: 1px solid #f0f0f0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.item:hover {
+  background: #fafafa;
+}
+
+.item:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: -3px;
+}
+
+.item.sin-leer {
+  background: #fff8f8;
+}
+
+.item-titulo {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.item-mensaje {
+  font-size: 0.82rem;
+  color: #555;
+}
+
+.item-fecha {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.punto {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 0.35rem;
+  border-radius: 50%;
+  background: #e50914;
+  vertical-align: middle;
+}
+
+.panel-pie {
+  padding: 0.6rem 1rem;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+
+.btn-marcar {
+  width: 100%;
+  padding: 0.45rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1c1c;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-marcar:hover:enabled {
+  background: #f0f0f0;
+}
+
+.btn-marcar:disabled {
+  color: #999;
+  cursor: default;
+}
+
+.btn-marcar:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
