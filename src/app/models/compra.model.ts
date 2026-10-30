@@ -13,6 +13,8 @@ export interface Compra {
   total: number;
   qr_code: string;
   estado: 'valida' | 'usada' | 'cancelada';
+  /** Se completa cuando el empleado escanea el QR y da paso en la puerta. */
+  usada_at?: string | null;
   metodo_pago: string | null;
   created_at: string;
   combo_id: number | null;

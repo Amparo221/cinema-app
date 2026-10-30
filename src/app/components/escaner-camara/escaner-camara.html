@@ -1,0 +1,11 @@
+<div class="camara">
+  <!-- html5-qrcode busca este id y le inserta el <video> por su cuenta. -->
+  <div #contenedor [id]="id" class="vista"></div>
+</div>
+
+@if (estado() === 'iniciando') {
+  <p class="estado" role="status">Encendiendo la cámara…</p>
+} @else if (estado() === 'error') {
+  <button type="button" class="reintentar" (click)="iniciar()">Reintentar cámara</button>
+}
+

@@ -411,6 +411,22 @@ export class SupabaseService {
     return this.supabase.rpc('cancelar_compra_liberando', { p_compra_id: compraId });
   }
 
+  /**
+   * RPC: datos de la entrada a partir del QR del recibo, sin consumirla.
+   * Solo empleado y admin; la pagina muestra la pelicula antes de dar paso.
+   */
+  async consultarEntradaQr(codigo: string) {
+    return this.supabase.rpc('consultar_entrada_qr', { p_codigo: codigo });
+  }
+
+  /**
+   * RPC atomica: valida la entrada en la puerta. El QR queda en estado
+   * 'usada' y no se puede volver a usar.
+   */
+  async validarEntradaQr(codigo: string) {
+    return this.supabase.rpc('validar_entrada_qr', { p_codigo: codigo });
+  }
+
   /** Abre un canal de Realtime; la pagina decide que escuchar. */
   crearCanal(nombre: string): RealtimeChannel {
     return this.supabase.channel(nombre);

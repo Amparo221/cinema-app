@@ -1,0 +1,116 @@
+<section class="escaner">
+  <header class="encabezado">
+    <h1>Escáner de entradas</h1>
+    <p>Escaneá el QR del recibo: te dice para qué película es y te deja dar paso.</p>
+  </header>
+
+  @if (error(); as mensaje) {
+    <p class="alerta error" role="alert">{{ mensaje }}</p>
+  }
+
+  @if (camaraActiva()) {
+    <div class="camara-wrap">
+      <app-escaner-camara (codigo)="alEscanear($event)" (error)="alFallarCamara($event)" />
+    </div>
+
+    @if (consultando()) {
+      <p class="estado-consulta" role="status">Buscando la entrada…</p>
+    }
+
+    <form class="manual" (submit)="buscarCodigoManual($event)">
+      <label for="codigo-manual">¿No lee el QR? Ingresá el código de la entrada</label>
+      <div class="manual-fila">
+        <input
+          #codigoInput
+          id="codigo-manual"
+          type="text"
+          autocomplete="off"
+          placeholder="Código del recibo"
+          [value]="codigoManual()"
+          (input)="codigoManual.set(codigoInput.value)"
+        />
+        <button type="submit" [disabled]="!codigoManual().trim() || consultando()">Buscar</button>
+      </div>
+    </form>
+  }
+
+  <div class="resultado" aria-live="polite">
+    @if (validada(); as v) {
+      <article class="tarjeta tarjeta-ok">
+        <p class="ok-marca" aria-hidden="true">✓</p>
+        <h2 class="ok-titulo">Entrada validada</h2>
+        <p class="pelicula">{{ v.pelicula ?? 'Función sin película' }}</p>
+        <p class="funcion">
+          {{ formatearFuncion(v.fecha, v.hora) }} · {{ v.sala ?? 'Sala sin datos' }}
+        </p>
+        <p class="butacas">
+          Butacas: {{ v.butacas.length ? v.butacas.join(', ') : '—' }}
+        </p>
+        <p class="ok-nota">El QR quedó desactivado: no puede usarse de nuevo.</p>
+        <button class="btn-principal" type="button" (click)="escanearSiguiente()">
+          Escanear siguiente
+        </button>
+      </article>
+    }
+
+    @if (entrada(); as e) {
+      <article class="tarjeta" [class.tarjeta-usada]="!e.puede_ingresar">
+        <p class="etiqueta">Película</p>
+        <h2 class="pelicula">{{ e.pelicula ?? 'Función sin película' }}</h2>
+        <p class="funcion">{{ formatearFuncion(e.fecha, e.hora) }}</p>
+
+        <dl class="detalle">
+          <div>
+            <dt>Sala</dt>
+            <dd>{{ e.sala ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Butacas</dt>
+            <dd>{{ e.cantidad_butacas }}</dd>
+          </div>
+          <div>
+            <dt>Ubicaciones</dt>
+            <dd>{{ e.butacas.length ? e.butacas.join(', ') : '—' }}</dd>
+          </div>
+          @if (e.combo_nombre) {
+            <div>
+              <dt>Combo</dt>
+              <dd>{{ e.combo_nombre }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (avisoFecha(); as aviso) {
+          <p class="aviso">{{ aviso }}</p>
+        }
+
+        @if (e.puede_ingresar) {
+          <button
+            #botonAceptar
+            class="btn-principal"
+            type="button"
+            [disabled]="validando()"
+            (click)="aceptar()"
+          >
+            {{ validando() ? 'Validando…' : 'Aceptar y dar paso' }}
+          </button>
+        } @else {
+          <p class="estado-bloqueado" role="alert">
+            @if (e.estado === 'usada') {
+              Esta entrada ya fue usada
+              @if (e.usada_at) {
+                <span class="sutil">({{ formatearUso(e.usada_at) }})</span>
+              }
+            } @else {
+              Esta compra fue cancelada: no se puede dar paso.
+            }
+          </p>
+        }
+
+        <button class="btn-secundario" type="button" (click)="escanearSiguiente()">
+          Escanear otra entrada
+        </button>
+      </article>
+    }
+  </div>
+</section>

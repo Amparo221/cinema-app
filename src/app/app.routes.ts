@@ -54,12 +54,7 @@ export const routes: Routes = [
       {
         path: 'escaner',
         canActivate: [adminGuard('escaner')],
-        loadComponent: () =>
-          import('./pages/admin/en-construccion/en-construccion').then(m => m.AdminEnConstruccion),
-        data: {
-          titulo: 'Escáner',
-          descripcion: 'Validación de entradas y pedidos del candy bar.',
-        },
+        loadComponent: () => import('./pages/escaner/escaner').then(m => m.Escaner),
       },
       {
         path: 'reporte',
@@ -86,12 +81,7 @@ export const routes: Routes = [
   {
     path: 'escaner',
     canActivate: [adminGuard('escaner')],
-    loadComponent: () =>
-      import('./pages/admin/en-construccion/en-construccion').then(m => m.AdminEnConstruccion),
-    data: {
-      titulo: 'Escáner',
-      descripcion: 'Validación de entradas y pedidos del candy bar.',
-    },
+    loadComponent: () => import('./pages/escaner/escaner').then(m => m.Escaner),
   },
   { path: '**', redirectTo: 'main' },
 ];

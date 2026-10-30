@@ -1,0 +1,47 @@
+/* Alto mínimo para que el contenedor tenga caja antes de que llegue el video. */
+.camara {
+  width: 100%;
+  max-width: 34rem;
+  min-height: 12rem;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: #000;
+}
+
+/*
+ * `html5-qrcode` inserta el <video> acá con el ancho en px tomado de este
+ * contenedor y el alto automático (respeta la proporción de la cámara). Si el
+ * ancho fuera 0, el canvas de escaneo queda en 0×0 y no lee nada. El sombreado
+ * del recuadro se posiciona en absoluto, por eso este contenedor es `relative`.
+ */
+.vista {
+  position: relative;
+  width: 100%;
+}
+
+.estado {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.reintentar {
+  display: block;
+  margin: 0.5rem auto 0;
+  padding: 0.6rem 1.1rem;
+  min-height: 44px;
+  border: 2px solid #1c1c1c;
+  border-radius: 10px;
+  background: #fff;
+  color: #1c1c1c;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.reintentar:focus-visible {
+  outline: 3px solid #1c1c1c;
+  outline-offset: 2px;
+}
+

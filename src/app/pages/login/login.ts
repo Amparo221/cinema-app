@@ -35,7 +35,13 @@ export class Login {
       return;
     }
 
-    const destino = perfil.role === 'admin' ? '/admin/general' : '/main';
+    // El empleado solo tiene acceso al escáner.
+    const destino =
+      perfil.role === 'admin'
+        ? '/admin/general'
+        : perfil.role === 'empleado'
+          ? '/escaner'
+          : '/main';
     await this.router.navigate([destino]);
   }
 }
