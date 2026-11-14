@@ -75,6 +75,7 @@ describe('EscanerCamara', () => {
 
   it('queda listo cuando la cámara arranca', async () => {
     await vi.waitFor(() => expect(component.estado()).toBe('listo'));
+    fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.estado')).toBeNull();
   });
 

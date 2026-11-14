@@ -1,0 +1,134 @@
+<div class="admin-log">
+  <header class="encabezado">
+    <h1>Log de actividad</h1>
+    <p>
+      Quién hizo cada cambio y cuándo: funciones, precios, recompensas, descuentos, validaciones de
+      QR y cancelaciones. Los registros los guarda la base de datos, no se pueden editar desde acá.
+    </p>
+  </header>
+
+  <section class="seccion" aria-labelledby="titulo-filtros">
+    <h2 id="titulo-filtros">Filtros</h2>
+
+    <form class="filtros" (submit)="buscar($event)">
+      <div class="campo">
+        <label for="log-desde">Desde</label>
+        <input
+          id="log-desde"
+          type="date"
+          [value]="desde()"
+          [max]="hasta() || null"
+          (change)="cambiarDesde($event)"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="log-hasta">Hasta</label>
+        <input
+          id="log-hasta"
+          type="date"
+          [value]="hasta()"
+          [min]="desde() || null"
+          (change)="cambiarHasta($event)"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="log-accion">Acción</label>
+        <select id="log-accion" [value]="accion()" (change)="cambiarAccion($event)">
+          <option value="">Todas</option>
+          @for (opcion of acciones; track opcion.valor) {
+            <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="log-usuario">Usuario</label>
+        <input
+          id="log-usuario"
+          type="search"
+          [value]="usuario()"
+          placeholder="Nombre o apellido"
+          (input)="cambiarUsuario($event)"
+        />
+      </div>
+
+      <div class="campo-botones">
+        <button type="submit">Buscar</button>
+        <button type="button" (click)="limpiarFiltros()" [disabled]="!hayFiltros()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-registros">
+    <div class="seccion-header">
+      <h2 id="titulo-registros">Registros</h2>
+      @if (!cargando()) {
+        <p class="subtitulo">{{ total() }} {{ total() === 1 ? 'registro' : 'registros' }}</p>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="alerta error" role="alert">{{ error() }}</p>
+    }
+
+    @if (cargando()) {
+      <p class="estado" role="status">Cargando registros...</p>
+    } @else if (vacio()) {
+      <p class="estado">No hay registros con estos filtros.</p>
+    } @else {
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">
+            Actividad registrada del sistema
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Fecha y hora</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Acción</th>
+              <th scope="col">Sobre</th>
+              <th scope="col">Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (registro of registros(); track registro.id) {
+              @let ref = referencia(registro);
+              @let detalle = resumenCambio(registro);
+              <tr>
+                <td class="fecha">{{ fechaHoraLocal(registro.created_at) }}</td>
+                <td>
+                  <span class="usuario">{{ registro.usuario_nombre }}</span>
+                  @if (registro.rol) {
+                    <span class="rol">{{ registro.rol }}</span>
+                  }
+                </td>
+                <td>
+                  <span [class]="'badge ' + claseAccion(registro.accion)">
+                    {{ etiquetaAccion(registro.accion) }}
+                  </span>
+                </td>
+                <td>
+                  {{ entidadLegible(registro.entidad) }}
+                  @if (ref) {
+                    <span class="ref">{{ ref }}</span>
+                  }
+                </td>
+                <td class="detalle">{{ detalle || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="paginacion" aria-label="Paginación del log">
+        <button type="button" (click)="irAnterior()" [disabled]="pagina() <= 1">Anterior</button>
+        <span aria-live="polite">Página {{ pagina() }} de {{ totalPaginas() }}</span>
+        <button type="button" (click)="irSiguiente()" [disabled]="pagina() >= totalPaginas()">
+          Siguiente
+        </button>
+      </nav>
+    }
+  </section>
+</div>

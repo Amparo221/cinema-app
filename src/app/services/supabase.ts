@@ -392,6 +392,11 @@ export class SupabaseService {
     return this.supabase.from(table);
   }
 
+  /** RPC genérica: las consultas del panel de admin viven en la base. */
+  rpc(funcion: string, argumentos: Record<string, unknown> = {}) {
+    return this.supabase.rpc(funcion, argumentos);
+  }
+
   async getCompra(id: string) {
     return this.supabase
     .from('compras')

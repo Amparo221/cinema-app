@@ -1,0 +1,290 @@
+<div class="admin-reporte">
+  <header class="encabezado">
+    <div>
+      <h1>Reporte</h1>
+      <p>
+        Facturación diaria, películas más vistas y candy más vendido. Las compras canceladas no
+        suman a la facturación: se muestran en su propia columna.
+      </p>
+    </div>
+
+    <div class="acciones">
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="descargarPdf()"
+        [disabled]="cargando() || exportando() !== null"
+      >
+        {{ exportando() === 'pdf' ? 'Generando PDF...' : 'Descargar PDF' }}
+      </button>
+      <button
+        type="button"
+        class="btn-secundario"
+        (click)="descargarExcel()"
+        [disabled]="cargando() || exportando() !== null"
+      >
+        {{ exportando() === 'excel' ? 'Generando Excel...' : 'Descargar Excel' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="seccion" aria-labelledby="titulo-filtros">
+    <h2 id="titulo-filtros">Rango de fechas</h2>
+    <p class="subtitulo">
+      Los días se cuentan en hora de Buenos Aires, según el momento en que se cobró la compra.
+    </p>
+
+    <div class="filtros">
+      <div class="campo">
+        <label for="reporte-desde">Desde</label>
+        <input
+          id="reporte-desde"
+          type="date"
+          [value]="desde()"
+          [max]="hasta()"
+          (change)="cambiarDesde($event)"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="reporte-hasta">Hasta</label>
+        <input
+          id="reporte-hasta"
+          type="date"
+          [value]="hasta()"
+          [min]="desde()"
+          (change)="cambiarHasta($event)"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="reporte-agrupacion">Películas agrupadas por</label>
+        <select id="reporte-agrupacion" [value]="agrupacion()" (change)="cambiarAgrupacion($event)">
+          <option value="semana">Semana</option>
+          <option value="mes">Mes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="atajos" role="group" aria-label="Rangos rápidos">
+      <button type="button" (click)="elegirSemana()">Esta semana</button>
+      <button type="button" (click)="elegirMes()">Este mes</button>
+      <button type="button" (click)="elegirUltimos(7)">Últimos 7 días</button>
+      <button type="button" (click)="elegirUltimos(30)">Últimos 30 días</button>
+    </div>
+  </section>
+
+  @if (error()) {
+    <p class="alerta error" role="alert">{{ error() }}</p>
+  }
+  @if (aviso()) {
+    <p class="alerta exito" role="status">{{ aviso() }}</p>
+  }
+
+  @if (cargando()) {
+    <p class="estado" role="status">Cargando reportes...</p>
+  } @else {
+    <section class="seccion" aria-labelledby="titulo-resumen">
+      <h2 id="titulo-resumen">Resumen del rango</h2>
+
+      <dl class="tarjetas">
+        <div class="tarjeta">
+          <dt>Total cobrado</dt>
+          <dd class="valor-grande">{{ formatearMoneda(totales().total_cobrado) }}</dd>
+          <dd class="detalle">{{ formatearNumero(totales().compras) }} compras</dd>
+        </div>
+
+        <div class="tarjeta">
+          <dt>Butacas</dt>
+          <dd class="valor-grande">{{ formatearMoneda(totales().dinero_butacas) }}</dd>
+          <dd class="detalle">{{ formatearNumero(totales().entradas) }} entradas</dd>
+        </div>
+
+        <div class="tarjeta">
+          <dt>Candy</dt>
+          <dd class="valor-grande">{{ formatearMoneda(totales().dinero_candy) }}</dd>
+          <dd class="detalle">{{ formatearNumero(totales().creditos_usados) }} créditos usados</dd>
+        </div>
+
+        <div class="tarjeta">
+          <dt>Entradas usadas</dt>
+          <dd class="valor-grande">{{ formatearNumero(totales().entradas_usadas) }}</dd>
+          <dd class="detalle">de {{ formatearNumero(totales().entradas) }} vendidas</dd>
+        </div>
+
+        <div class="tarjeta">
+          <dt>Canceladas</dt>
+          <dd class="valor-grande">{{ formatearNumero(totales().canceladas) }}</dd>
+          <dd class="detalle">{{ formatearMoneda(totales().monto_cancelado) }} en crédito</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="seccion" aria-labelledby="titulo-facturacion">
+      <h2 id="titulo-facturacion">Facturación diaria</h2>
+      <p class="subtitulo">
+        Del {{ etiquetaDia(desde()) }} al {{ etiquetaDia(hasta()) }}. El total cobrado es butacas +
+        candy, ya descontados los créditos y los puntos usados.
+      </p>
+
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">
+            Facturación por día del rango elegido
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Día</th>
+              <th scope="col" class="numero">Compras</th>
+              <th scope="col" class="numero">Entradas</th>
+              <th scope="col" class="numero">Usadas</th>
+              <th scope="col" class="numero">Butacas</th>
+              <th scope="col" class="numero">Candy</th>
+              <th scope="col" class="numero">Total cobrado</th>
+              <th scope="col" class="numero">Créditos</th>
+              <th scope="col" class="numero">Puntos</th>
+              <th scope="col" class="numero">Canceladas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (fila of dias(); track fila.dia) {
+              <tr [class.sin-ventas]="fila.compras === 0 && fila.canceladas === 0">
+                <th scope="row">{{ etiquetaDia(fila.dia) }}</th>
+                <td class="numero">{{ formatearNumero(fila.compras) }}</td>
+                <td class="numero">{{ formatearNumero(fila.entradas) }}</td>
+                <td class="numero">{{ formatearNumero(fila.entradas_usadas) }}</td>
+                <td class="numero">{{ formatearMoneda(fila.dinero_butacas) }}</td>
+                <td class="numero">{{ formatearMoneda(fila.dinero_candy) }}</td>
+                <td class="numero total-celda">{{ formatearMoneda(fila.total_cobrado) }}</td>
+                <td class="numero">{{ formatearMoneda(fila.creditos_usados) }}</td>
+                <td class="numero">{{ formatearNumero(fila.puntos_usados) }}</td>
+                <td class="numero">{{ formatearNumero(fila.canceladas) }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Total</th>
+              <td class="numero">{{ formatearNumero(totales().compras) }}</td>
+              <td class="numero">{{ formatearNumero(totales().entradas) }}</td>
+              <td class="numero">{{ formatearNumero(totales().entradas_usadas) }}</td>
+              <td class="numero">{{ formatearMoneda(totales().dinero_butacas) }}</td>
+              <td class="numero">{{ formatearMoneda(totales().dinero_candy) }}</td>
+              <td class="numero">{{ formatearMoneda(totales().total_cobrado) }}</td>
+              <td class="numero">{{ formatearMoneda(totales().creditos_usados) }}</td>
+              <td class="numero">{{ formatearNumero(totales().puntos_usados) }}</td>
+              <td class="numero">{{ formatearNumero(totales().canceladas) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      @if (sinVentas()) {
+        <p class="estado">No hubo compras cobradas en este rango.</p>
+      }
+    </section>
+
+    <div class="columnas">
+      <section class="seccion" aria-labelledby="titulo-peliculas">
+        <h2 id="titulo-peliculas">Películas más vistas</h2>
+        <p class="subtitulo">
+          Entradas vendidas por película, agrupadas por
+          {{ agrupacion() === 'mes' ? 'mes' : 'semana' }}. Se cuentan las funciones del rango, sin
+          las compras canceladas.
+        </p>
+
+        <app-grafico-barras
+          titulo="Entradas por película"
+          [datos]="barrasPeliculas()"
+          unidad="entradas"
+          vacio="No hay funciones con ventas en este rango."
+        />
+
+        @if (peliculas().length > 0) {
+          <div class="tabla-scroll tabla-compacta">
+            <table>
+              <caption class="sr-only">
+                Entradas e ingresos por película y período
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Período</th>
+                  <th scope="col">Película</th>
+                  <th scope="col" class="numero">Entradas</th>
+                  <th scope="col" class="numero">Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (fila of peliculasPorPeriodo(); track fila.periodo + '-' + fila.pelicula_id) {
+                  <tr>
+                    <th scope="row">{{ etiquetaPeriodo(fila.periodo, agrupacion()) }}</th>
+                    <td>{{ fila.pelicula }}</td>
+                    <td class="numero">{{ formatearNumero(fila.entradas) }}</td>
+                    <td class="numero">{{ formatearMoneda(fila.ingresos) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <section class="seccion" aria-labelledby="titulo-candy">
+        <h2 id="titulo-candy">Candy más vendido</h2>
+
+        @if (mejor(); as producto) {
+          <p class="destacado" role="status">
+            Más vendido: <strong>{{ producto.producto }}</strong> con
+            {{ formatearNumero(producto.cantidad) }} unidades ({{
+              formatearMoneda(producto.ingresos)
+            }}).
+          </p>
+        } @else {
+          <p class="estado">Todavía no hay ventas de candy en este rango.</p>
+        }
+
+        <app-grafico-barras
+          titulo="Unidades por producto"
+          [datos]="barrasCandy()"
+          unidad="u."
+          vacio="No se registraron productos de candy en este rango."
+        />
+
+        @if (candy().length > 0) {
+          <div class="tabla-scroll tabla-compacta">
+            <table>
+              <caption class="sr-only">
+                Unidades vendidas por producto de candy
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Producto</th>
+                  <th scope="col" class="numero">Unidades</th>
+                  <th scope="col" class="numero">En combos</th>
+                  <th scope="col" class="numero">Comprados</th>
+                  <th scope="col" class="numero">Ingresos</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (producto of candy(); track producto.producto) {
+                  <tr>
+                    <th scope="row">{{ producto.producto }}</th>
+                    <td class="numero">{{ formatearNumero(producto.cantidad) }}</td>
+                    <td class="numero">{{ formatearNumero(producto.combos) }}</td>
+                    <td class="numero">{{ formatearNumero(producto.extras) }}</td>
+                    <td class="numero">{{ formatearMoneda(producto.ingresos) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <p class="nota">
+          El detalle de candy por compra se empezó a guardar con la migración de reportes. Las
+          compras anteriores solo tienen el total, así que no aparecen acá.
+        </p>
+      </section>
+    </div>
+  }
+</div>

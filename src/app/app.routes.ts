@@ -59,22 +59,12 @@ export const routes: Routes = [
       {
         path: 'reporte',
         canActivate: [adminGuard('reporte')],
-        loadComponent: () =>
-          import('./pages/admin/en-construccion/en-construccion').then(m => m.AdminEnConstruccion),
-        data: {
-          titulo: 'Reporte',
-          descripcion: 'Reportes de ventas, ocupación y películas más vistas.',
-        },
+        loadComponent: () => import('./pages/admin/reporte/reporte').then(m => m.AdminReporte),
       },
       {
         path: 'log',
         canActivate: [adminGuard('log')],
-        loadComponent: () =>
-          import('./pages/admin/en-construccion/en-construccion').then(m => m.AdminEnConstruccion),
-        data: {
-          titulo: 'Log',
-          descripcion: 'Registro de acciones y eventos del sistema.',
-        },
+        loadComponent: () => import('./pages/admin/log/log').then(m => m.AdminLog),
       },
     ],
   },

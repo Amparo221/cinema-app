@@ -1,0 +1,27 @@
+<figure class="grafico">
+  <figcaption>{{ titulo() }}</figcaption>
+
+  @if (barras().length === 0) {
+    <p class="vacio">{{ vacio() }}</p>
+  } @else {
+    <ul class="barras">
+      @for (barra of barras(); track barra.etiqueta) {
+        <li class="fila">
+          <span class="etiqueta" [title]="barra.etiqueta">{{ barra.etiqueta }}</span>
+          <span class="pista" aria-hidden="true">
+            <span class="barra" [style.width.%]="barra.porcentaje"></span>
+          </span>
+          <span class="valor">
+            <span class="numero">{{ barra.valorTexto }}</span>
+            @if (unidad()) {
+              <span class="unidad">{{ unidad() }}</span>
+            }
+            @if (barra.detalle) {
+              <span class="detalle">{{ barra.detalle }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</figure>

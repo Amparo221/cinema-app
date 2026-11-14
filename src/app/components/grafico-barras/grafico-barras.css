@@ -1,0 +1,82 @@
+.grafico {
+  margin: 0;
+}
+
+figcaption {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.barras {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: minmax(6rem, 32%) 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.etiqueta {
+  overflow: hidden;
+  color: #333;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pista {
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef1f5;
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2f6feb, #5b8df7);
+}
+
+.valor {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.numero {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #222;
+}
+
+.unidad,
+.detalle {
+  font-size: 0.8rem;
+  color: #5f6672;
+}
+
+.vacio {
+  margin: 0;
+  color: #666;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .fila {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pista {
+    grid-column: 1 / -1;
+  }
+}
