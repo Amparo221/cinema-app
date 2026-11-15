@@ -108,22 +108,45 @@ export class Recibo implements OnInit {
   }
 
   //genera el pdf
-  async descargarPDF() {
-  const elemento = document.getElementById('recibo-pdf');
-  if (!elemento) return;
+    async descargarPDF() {
+    const elemento = document.getElementById('recibo-pdf');
+    if (!elemento) return;
 
-  const { default: jsPDF } = await import('jspdf');
-  const pdf = new jsPDF('p', 'mm', 'a4');
+    // 1. Importamos dinámicamente html2canvas y jspdf
+    const { default: html2canvas } = await import('html2canvas');
+    const { default: jsPDF } = await import('jspdf');
 
-  await pdf.html(elemento, {
-    callback: (doc) => {
-      doc.save(`recibo-${this.compra()!.id.slice(0, 8)}.pdf`);
-    },
-    x: 10,
-    y: 10,
-    width: 190,
-    windowWidth: 800,
-  });
-}
+    try {
+      // 2. Damos un pequeño respiro (opcional, pero ayuda a que el QR termine de renderizarse)
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // 3. Capturamos el HTML como si fuera una foto
+      const canvas = await html2canvas(elemento, {
+        scale: 2,           
+        useCORS: true,      
+        backgroundColor: '#ffffff', // Fondo blanco para que no salga transparente
+        logging: false
+      });
+
+      // 4. Convertimos la foto a un formato que jsPDF entienda (imagen PNG)
+      const imgData = canvas.toDataURL('image/png');
+
+      // 5. Creamos el PDF y metemos la imagen
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Calculamos el ancho y alto para que la imagen entre perfecta en el A4
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      // AddImage(imagen, formato, x, y, ancho, alto)
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+      // 6. Guardamos el archivo
+      pdf.save(`recibo-${this.compra()!.id.slice(0, 8)}.pdf`);
+      
+    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+    }
+  }
 
 }
