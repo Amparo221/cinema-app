@@ -39,10 +39,10 @@
         <label for="reporte-desde">Desde</label>
         <input
           id="reporte-desde"
-          type="date"
-          [value]="desde()"
-          [max]="hasta()"
-          (change)="cambiarDesde($event)"
+          appFecha
+          [ngModel]="desde()"
+          (ngModelChange)="cambiarDesde($event)"
+          [ngModelOptions]="{ standalone: true }"
         />
       </div>
 
@@ -50,19 +50,21 @@
         <label for="reporte-hasta">Hasta</label>
         <input
           id="reporte-hasta"
-          type="date"
-          [value]="hasta()"
-          [min]="desde()"
-          (change)="cambiarHasta($event)"
+          appFecha
+          [ngModel]="hasta()"
+          (ngModelChange)="cambiarHasta($event)"
+          [ngModelOptions]="{ standalone: true }"
         />
       </div>
 
       <div class="campo">
         <label for="reporte-agrupacion">Películas agrupadas por</label>
-        <select id="reporte-agrupacion" [value]="agrupacion()" (change)="cambiarAgrupacion($event)">
-          <option value="semana">Semana</option>
-          <option value="mes">Mes</option>
-        </select>
+        <app-select
+          id="reporte-agrupacion"
+          [opciones]="opcionesAgrupacion"
+          [valor]="agrupacion()"
+          (valorChange)="cambiarAgrupacion($event)"
+        />
       </div>
     </div>
 

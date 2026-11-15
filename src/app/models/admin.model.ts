@@ -1,5 +1,7 @@
 import { CategoriaCandy } from './producto-candy.model';
 
+import { SolicitudFunciones } from './programacion.model';
+
 /** Película lista para insertar. `imagen` es el nombre del archivo en Storage. */
 export interface NuevaPelicula {
   nombre: string;
@@ -48,7 +50,13 @@ export interface SalidaPelicula {
   datos: DatosPelicula;
   /** null cuando se edita y se conserva la imagen actual. */
   archivo: File | null;
+  /**
+   * Funciones a generar después de crear la película. Solo se usa en el
+   * alta; al editar se ignora (el panel de /admin/general las repone).
+   */
+  funciones?: SolicitudFunciones | null;
 }
+
 
 export interface SalidaProductoCandy {
   datos: DatosProductoCandy;

@@ -52,12 +52,11 @@
 
     <div class="campo">
       <label for="pelicula-clasificacion">Clasificación</label>
-      <select id="pelicula-clasificacion" formControlName="restriccion_edad">
-        <option value="sin_restriccion">Sin restricción</option>
-        <option value="13+">13+</option>
-        <option value="16+">16+</option>
-        <option value="18+">18+</option>
-      </select>
+      <app-select
+        id="pelicula-clasificacion"
+        formControlName="restriccion_edad"
+        [opciones]="opcionesClasificacion"
+      />
     </div>
   </div>
 
@@ -132,9 +131,8 @@
         <label for="pelicula-estreno">Fecha de estreno</label>
         <input
           id="pelicula-estreno"
-          type="date"
+          appFecha
           formControlName="fecha_estreno"
-          [min]="hoy"
           [attr.aria-invalid]="estreno.touched && estreno.invalid ? 'true' : null"
           [attr.aria-describedby]="
             estreno.touched && estreno.invalid ? 'pelicula-estreno-error' : null
@@ -154,6 +152,41 @@
       </div>
     </div>
   </fieldset>
+
+  @if (!esEdicion()) {
+    <fieldset class="campo-grupo">
+      <legend>Programación de funciones</legend>
+
+      <label class="check">
+        <input
+          type="checkbox"
+          [checked]="programarFunciones()"
+          (change)="alternarProgramacion($event)"
+          aria-describedby="pelicula-programacion-ayuda"
+        />
+        Programar funciones al crear
+      </label>
+      <p id="pelicula-programacion-ayuda" class="ayuda">
+        Opcional. Podés generar las funciones ahora o reponerlas después desde General.
+        @if (esEstreno()) {
+          Las funciones no pueden ser anteriores al estreno.
+        }
+      </p>
+
+      @if (programarFunciones()) {
+        <app-programacion-funciones
+          [duracion]="duracion.value"
+          [fechaMinima]="fechaMinimaProgramacion()"
+          [mostrarBoton]="false"
+          [guardando]="guardando()"
+        />
+      }
+
+      @if (errorProgramacion(); as error) {
+        <p class="error-campo" role="alert">{{ error }}</p>
+      }
+    </fieldset>
+  }
 
   <fieldset class="campo campo-imagen">
     <legend id="pelicula-imagen-legend">Imagen @if (!esEdicion()) { * }</legend>

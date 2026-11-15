@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  font: inherit;
+}
+
+.caja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--borde-control);
+  border-radius: 10px;
+  background: var(--superficie);
+  color: #1c1c1c;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.caja:hover:enabled {
+  border-color: var(--violeta-deshabilitado);
+}
+
+.caja:focus-visible {
+  outline: 3px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.caja:disabled {
+  background: var(--violeta-tenue);
+  color: #6b5b73;
+  cursor: not-allowed;
+}
+
+.caja[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.texto.placeholder {
+  color: #6b5b73;
+}
+
+.flecha {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--violeta);
+  border-bottom: 2px solid var(--violeta);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+:host(.abierto) .flecha {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  padding: 0.25rem;
+  border: 1px solid #e3d9ff;
+  border-radius: 10px;
+  background: var(--superficie);
+  box-shadow: 0 12px 30px rgba(128, 0, 128, 0.16);
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    max-height 0.25s ease,
+    opacity 0.18s ease,
+    transform 0.2s ease,
+    visibility 0.18s;
+}
+
+:host(.abierto) .panel {
+  max-height: 18rem;
+  overflow-y: auto;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.opcion {
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.opcion.activa {
+  background: var(--violeta-tenue);
+}
+
+.opcion.elegida {
+  color: var(--violeta-oscuro);
+  font-weight: 600;
+}
+
+.opcion.deshabilitada {
+  color: #6b5b73;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.vacio {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caja,
+  .flecha,
+  .panel {
+    transition: none;
+  }
+}

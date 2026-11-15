@@ -1,11 +1,11 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../services/supabase';
 import { SessionService } from '../../services/session';
 import { NotificacionesService } from '../../services/notificaciones';
 import { Pelicula } from '../../models/pelicula.model';
+import { OpcionSelect, Select } from '../../shared/select/select';
 import {
   Combo,
   motivoNoCanjeCombo,
@@ -26,7 +26,7 @@ interface PeliculaVendida {
 
 @Component({
   selector: 'app-main',
-  imports: [NgTemplateOutlet, FormsModule, RouterLink],
+  imports: [NgTemplateOutlet, RouterLink, Select],
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
@@ -69,6 +69,20 @@ export class Main implements OnInit {
     const todos = this.peliculasEnCartelera().flatMap(pelicula => pelicula.generos);
     return [...new Set(todos)].sort((a, b) => a.localeCompare(b));
   });
+
+  /** Opciones del filtro: "Todos" (valor vacío) y un género por cada uno en cartelera. */
+  opcionesGeneros = computed<readonly OpcionSelect[]>(() => [
+    { valor: '', etiqueta: 'Todos' },
+    ...this.generosDisponibles().map(genero => ({ valor: genero, etiqueta: genero })),
+  ]);
+
+  /** Películas que se pueden elegir al canjear un combo. */
+  opcionesPeliculas = computed<readonly OpcionSelect[]>(() =>
+    this.peliculasEnCartelera().map(pelicula => ({
+      valor: pelicula.id,
+      etiqueta: pelicula.nombre,
+    })),
+  );
 
   peliculasFiltradas = computed(() => {
     const filtro = this.generoFiltro();
@@ -143,11 +157,17 @@ export class Main implements OnInit {
     }
   }
 
-  seleccionarPeliculaCombo(comboId: number, peliculaId: number) {
+  seleccionarPeliculaCombo(comboId: number, peliculaId: string | number | null) {
+    if (peliculaId === null) return;
+
     this.peliculaPorCombo.update(actual => ({
       ...actual,
       [comboId]: Number(peliculaId),
     }));
+  }
+
+  cambiarGenero(valor: string | number | null) {
+    this.generoFiltro.set(valor === null ? '' : String(valor));
   }
 
   irACombo(combo: Combo) {

@@ -79,9 +79,20 @@
                     <span class="sin-imagen">Sin imagen</span>
                   }
                 </td>
-                <td class="nombre">{{ pelicula.nombre }}</td>
+                <td class="nombre" [attr.title]="pelicula.nombre">
+                  {{ pelicula.nombre | recortarTexto: 32 }}
+                </td>
                 <td>{{ pelicula.duracion }} min</td>
-                <td>{{ pelicula.generos.length > 0 ? pelicula.generos.join(', ') : '—' }}</td>
+                <td
+                  [attr.title]="
+                    pelicula.generos.length > 0 ? pelicula.generos.join(', ') : null
+                  "
+                >
+                  {{
+                    (pelicula.generos.length > 0 ? pelicula.generos.join(', ') : '—')
+                      | recortarTexto: 38
+                  }}
+                </td>
                 <td>{{ etiquetaRestriccion(pelicula.restriccion_edad) }}</td>
                 <td>{{ formatearPrecio(pelicula.precio_preventa) }}</td>
                 <td>{{ formatearFechaEstreno(pelicula.fecha_estreno) }}</td>
@@ -91,18 +102,164 @@
                   </span>
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    class="btn-editar"
-                    (click)="editarPelicula(pelicula)"
-                    [attr.aria-label]="'Editar ' + pelicula.nombre"
-                    aria-controls="form-pelicula"
-                    [attr.aria-expanded]="peliculaEnEdicion()?.id === pelicula.id"
-                  >
-                    Editar
-                  </button>
+                  <div class="acciones-fila">
+                    <button
+                      type="button"
+                      class="btn-editar"
+                      (click)="editarPelicula(pelicula)"
+                      [attr.aria-label]="'Editar ' + pelicula.nombre"
+                      aria-controls="form-pelicula"
+                      [attr.aria-expanded]="peliculaEnEdicion()?.id === pelicula.id"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-secundario-chico"
+                      (click)="alternarReponer(pelicula)"
+                      [attr.aria-label]="'Reponer funciones de ' + pelicula.nombre"
+                      [attr.aria-expanded]="peliculaReponiendo()?.id === pelicula.id"
+                      [attr.aria-controls]="
+                        peliculaReponiendo()?.id === pelicula.id ? 'reponer-' + pelicula.id : null
+                      "
+                    >
+                      {{
+                        peliculaReponiendo()?.id === pelicula.id
+                          ? 'Ocultar funciones'
+                          : 'Funciones'
+                      }}
+                    </button>
+                  </div>
                 </td>
               </tr>
+
+              @if (peliculaReponiendo()?.id === pelicula.id) {
+                <tr class="fila-reponer">
+                  <td colspan="9">
+                    <section
+                      class="panel-reponer"
+                      [id]="'reponer-' + pelicula.id"
+                      [attr.aria-labelledby]="'reponer-titulo-' + pelicula.id"
+                    >
+                      <div class="panel-reponer-header">
+                        <div>
+                          <h3 [id]="'reponer-titulo-' + pelicula.id">
+                            Reponer funciones de {{ pelicula.nombre }}
+                          </h3>
+                          <p class="subtitulo">
+                            {{ pelicula.duracion }} min · próximas funciones
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          class="btn-secundario-chico"
+                          (click)="cerrarReponer()"
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+
+                      @if (cargandoFunciones()) {
+                        <p class="estado">Cargando funciones...</p>
+                      } @else if (funcionesExistentes().length === 0) {
+                        <p class="estado">Esta película todavía no tiene funciones próximas.</p>
+                      } @else {
+                        <ul class="lista-funciones">
+                          @for (funcion of funcionesExistentes(); track funcion.id) {
+                            <li>
+                              <button
+                                type="button"
+                                class="funcion-chip"
+                                [class.seleccionada]="funcionSeleccionada()?.id === funcion.id"
+                                [attr.aria-pressed]="funcionSeleccionada()?.id === funcion.id"
+                                [disabled]="cancelandoFuncion() || !puedeCancelar(funcion)"
+                                [attr.title]="
+                                  puedeCancelar(funcion)
+                                    ? 'Elegir esta función para cancelarla'
+                                    : 'La función ya comenzó'
+                                "
+                                [attr.aria-label]="
+                                  'Elegir la función del ' +
+                                  formatearFechaEstreno(funcion.fecha) +
+                                  ' a las ' +
+                                  horaCorta(funcion.hora) +
+                                  ' para cancelarla'
+                                "
+                                (click)="seleccionarFuncion(funcion)"
+                              >
+                                <span>{{ formatearFechaEstreno(funcion.fecha) }}</span>
+                                <span>{{ horaCorta(funcion.hora) }}</span>
+                                <span>{{ funcion.salas?.nombre ?? 'Sala a confirmar' }}</span>
+                                <span>{{ etiquetaFuncion(funcion) }}</span>
+                              </button>
+                            </li>
+                          }
+                        </ul>
+
+                        @if (funcionSeleccionada(); as seleccionada) {
+                          <div
+                            class="confirmar-cancelacion"
+                            role="group"
+                            [attr.aria-labelledby]="'cancelar-titulo-' + seleccionada.id"
+                          >
+                            <p [id]="'cancelar-titulo-' + seleccionada.id">
+                              ¿Cancelar la función del
+                              {{ formatearFechaEstreno(seleccionada.fecha) }} a las
+                              {{ horaCorta(seleccionada.hora) }}
+                              ({{ seleccionada.salas?.nombre ?? 'sala a confirmar' }})? Se
+                              acreditará el total de cada compra en créditos, se liberarán las
+                              butacas y se les avisará a los compradores.
+                            </p>
+                            <div class="acciones-cancelacion">
+                              <button
+                                type="button"
+                                class="btn-peligro"
+                                (click)="cancelarFuncionSeleccionada()"
+                                [disabled]="cancelandoFuncion()"
+                              >
+                                {{
+                                  cancelandoFuncion()
+                                    ? 'Cancelando...'
+                                    : 'Sí, cancelar función'
+                                }}
+                              </button>
+                              <button
+                                type="button"
+                                class="btn-secundario-chico"
+                                (click)="descartarSeleccion()"
+                                [disabled]="cancelandoFuncion()"
+                              >
+                                Volver
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      }
+
+                      @if (errorFunciones(); as error) {
+                        <p class="alerta error" role="alert">{{ error }}</p>
+                      }
+
+                      @if (resultadoFunciones(); as resultado) {
+                        <p class="alerta exito" role="status">{{ resumenFunciones(resultado) }}</p>
+                      }
+
+                      @if (resultadoCancelacion(); as cancelacion) {
+                        <p class="alerta exito" role="status">
+                          {{ resumenCancelacionFuncion(cancelacion) }}
+                        </p>
+                      }
+
+                      <app-programacion-funciones
+                        [duracion]="pelicula.duracion"
+                        [fechaMinima]="fechaMinimaPelicula(pelicula)"
+                        [guardando]="generandoFunciones()"
+                        (generar)="generarFunciones(pelicula, $event)"
+                      />
+                    </section>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -187,9 +344,13 @@
                     <span class="sin-imagen">Sin imagen</span>
                   }
                 </td>
-                <td class="nombre">{{ producto.nombre }}</td>
+                <td class="nombre" [attr.title]="producto.nombre">
+                  {{ producto.nombre | recortarTexto: 26 }}
+                </td>
                 <td><span class="badge categoria">{{ etiquetaCategoria(producto.categoria) }}</span></td>
-                <td>{{ producto.descripcion || '—' }}</td>
+                <td [attr.title]="producto.descripcion || null">
+                  {{ (producto.descripcion || '—') | recortarTexto: 38 }}
+                </td>
                 <td>{{ formatearPrecio(producto.precio) }}</td>
                 <td>
                   @if (producto.stock === 0) {
@@ -279,8 +440,12 @@
           <tbody>
             @for (combo of combosVisibles(); track combo.id) {
               <tr [class.en-edicion]="comboEnEdicion()?.id === combo.id">
-                <td class="nombre">{{ combo.nombre }}</td>
-                <td>{{ etiquetaProductosCombo(combo) }}</td>
+                <td class="nombre" [attr.title]="combo.nombre">
+                  {{ combo.nombre | recortarTexto: 28 }}
+                </td>
+                <td [attr.title]="etiquetaProductosCombo(combo)">
+                  {{ etiquetaProductosCombo(combo) | recortarTexto: 40 }}
+                </td>
                 <td>{{ formatearPuntos(combo.puntos) }}</td>
                 <td>{{ formatearPuntos(combo.puntos_plus) }}</td>
                 <td>

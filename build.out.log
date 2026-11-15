@@ -1,0 +1,36 @@
+
+> supabase-angular@0.0.0 build
+> ng build
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+chunk-DOzRuPl8.js   | -             | 424.84 kB |               107.12 kB
+main-ZUE467Q3.js    | main          | 120.77 kB |                31.76 kB
+chunk-DFgPOoGa.js   | -             | 970 bytes |               970 bytes
+styles-5CKEEESF.css | styles        | 557 bytes |               557 bytes
+
+                    | Initial total | 547.14 kB |               140.41 kB
+
+Lazy chunk files    | Names         |  Raw size | Estimated transfer size
+chunk-1ZWClLzk.js   | jspdf-es-min  | 411.22 kB |               112.77 kB
+chunk-hBwdhHKs.js   | escaner       | 394.67 kB |                92.82 kB
+chunk-B1LRjyoU.js   | xlsx          | 297.35 kB |                83.80 kB
+chunk-V2vpiKfm.js   | html2canvas   | 201.07 kB |                38.45 kB
+chunk-BFGznYQ7.js   | index-es      | 158.42 kB |                46.77 kB
+chunk-BEA5rTgd.js   | general       | 107.50 kB |                21.15 kB
+chunk-CPyhQXUR.js   | -             |  52.17 kB |                10.63 kB
+chunk-CBfkwKut.js   | recibo        |  39.77 kB |                12.96 kB
+chunk-B1Y_agDD.js   | compra        |  29.97 kB |                 7.70 kB
+chunk-bp0IESsL.js   | purify-es     |  29.96 kB |                10.26 kB
+chunk-BljJqP7a.js   | reporte       |  26.01 kB |                 7.19 kB
+chunk-DLKqBBnP.js   | main          |  17.54 kB |                 4.92 kB
+chunk-DEwVmUzL.js   | pelicula      |  17.36 kB |                 4.95 kB
+chunk-DHqjO0Jp.js   | pago          |  14.76 kB |                 4.13 kB
+chunk-B1d0KvqM.js   | log           |  14.54 kB |                 4.70 kB
+...and 12 more lazy chunks files. Use "--verbose" to show all the files.
+
+Application bundle generation complete. [8.795 seconds] - 2026-11-15T21:59:49.759Z
+
+Output location: C:\Users\ampiu\Desktop\supabase-angular\dist\supabase-angular
+

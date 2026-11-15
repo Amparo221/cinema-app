@@ -24,11 +24,11 @@
   <div class="fila">
     <div class="campo">
       <label for="candy-categoria">Categoría *</label>
-      <select id="candy-categoria" formControlName="categoria">
-        @for (categoria of categorias; track categoria.valor) {
-          <option [value]="categoria.valor">{{ categoria.etiqueta }}</option>
-        }
-      </select>
+      <app-select
+        id="candy-categoria"
+        formControlName="categoria"
+        [opciones]="categorias"
+      />
     </div>
 
     <div class="campo">

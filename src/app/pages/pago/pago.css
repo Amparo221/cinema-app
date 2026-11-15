@@ -36,8 +36,8 @@
 }
 
 .combo-resumen {
-  background: #fff5f5;
-  border-left: 4px solid #e50914;
+  background: var(--violeta-tenue);
+  border-left: 4px solid var(--violeta);
   padding-left: 0.75rem;
   border-radius: 4px;
 }
@@ -126,8 +126,8 @@
 }
 
 .opcion.activa {
-  border-color: #e50914;
-  background: #fff5f5;
+  border-color: var(--violeta);
+  background: var(--violeta-tenue);
 }
 
 .opcion .icono {
@@ -161,7 +161,7 @@
 
 .btn-confirmar {
   padding: 0.75rem 2rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 8px;

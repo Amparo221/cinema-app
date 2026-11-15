@@ -128,7 +128,7 @@
           @for (r of resenas(); track r.id) {
             <div class="resena">
               <div class="resena-header">
-                <strong>{{ r.profiles?.nombre }} {{ r.profiles?.apellido }}</strong>
+                <strong>{{ r.autor || 'Usuario' }}</strong>
                 <span class="estrellas">{{ '★'.repeat(r.estrellas) }}{{ '☆'.repeat(5 - r.estrellas) }}</span>
               </div>
               @if (r.comentario) {

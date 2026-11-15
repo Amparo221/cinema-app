@@ -9,6 +9,7 @@ import {
   NuevoProductoCandy,
   ResultadoSubida,
 } from '../models/admin.model';
+import { FuncionProgramada, SolicitudAutomatica } from '../models/programacion.model';
 
 interface FilaAsientoVendido {
   funciones: { pelicula_id: number } | null;
@@ -109,20 +110,71 @@ export class SupabaseService {
       salas (nombre)
     `)
       .eq('pelicula_id', peliculaId)
+      .is('cancelada_at', null)
       .gte('fecha', new Date().toISOString().split('T')[0])
       .order('fecha', { ascending: true })
       .order('hora', { ascending: true });
   }
 
-  async getResenasDePelicula(peliculaId: number) {
+  /**
+   * RPC: genera funciones en lote (solo admin). El servidor reparte los
+   * horarios, asigna la primera sala libre y saltea los duplicados.
+   */
+  async generarFuncionesAutomaticas(peliculaId: number, solicitud: SolicitudAutomatica) {
+    return this.supabase.rpc('generar_funciones_automaticas', {
+      p_pelicula_id: peliculaId,
+      p_desde: solicitud.desde,
+      p_hasta: solicitud.hasta,
+      p_dias_semana: solicitud.diasSemana,
+      p_por_dia: solicitud.porDia,
+      p_hora_inicio: solicitud.horaInicio,
+      p_hora_fin: solicitud.horaFin,
+      p_tipos: solicitud.tipos,
+    });
+  }
+
+  /** RPC: crea el lote manual completo o no crea nada (solo admin). */
+  async crearFuncionesManuales(peliculaId: number, funciones: FuncionProgramada[]) {
+    return this.supabase.rpc('crear_funciones_manuales', {
+      p_pelicula_id: peliculaId,
+      p_funciones: funciones,
+    });
+  }
+
+  /**
+   * Funciones del rango con sala y película. Se usa para avisar choques
+   * mientras el admin arma el lote manual.
+   */
+  async getFuncionesEnRango(desde: string, hasta: string) {
     return this.supabase
-      .from('resenas')
+      .from('funciones')
       .select(`
-      id, usuario_id, pelicula_id, estrellas, comentario, created_at,
-      profiles (nombre, apellido)
+      id, pelicula_id, sala_id, fecha, hora, formato, idioma,
+      salas (nombre),
+      peliculas (nombre, duracion)
     `)
-      .eq('pelicula_id', peliculaId)
-      .order('created_at', { ascending: false });
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
+      .is('cancelada_at', null)
+      .order('fecha', { ascending: true })
+      .order('hora', { ascending: true });
+  }
+
+  /**
+   * RPC: cancela una función completa (solo admin). Acredita a cada comprador
+   * registrado, devuelve los puntos usados en combos, descuenta los puntos
+   * ganados, libera las butacas y deja un aviso en la campanita.
+   */
+  async cancelarFuncion(funcionId: number) {
+    return this.supabase.rpc('cancelar_funcion', { p_funcion_id: funcionId });
+  }
+
+  /**
+   * Reseñas de una película con el nombre de quien la escribió.
+   * Va por RPC porque la RLS de `profiles` no deja leer el perfil ajeno.
+   */
+  async getResenasDePelicula(peliculaId: number) {
+    return this.supabase.rpc('resenas_de_pelicula', { p_pelicula_id: peliculaId });
   }
 
   async crearResena(usuarioId: string, peliculaId: number, estrellas: number, comentario: string) {

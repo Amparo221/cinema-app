@@ -1,9 +1,11 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -11,6 +13,9 @@ import {
 import { Router } from '@angular/router';
 import { NotificacionesService } from '../../services/notificaciones';
 import { Notificacion } from '../../models/notificacion.model';
+
+/** Duración de la sacudida del icono; coincide con la animación CSS. */
+const DURACION_SACUDIDA = 1100;
 
 /** Campanita flotante con las notificaciones del usuario logueado. */
 @Component({
@@ -31,11 +36,30 @@ export class Campanita {
   private panel = viewChild<ElementRef<HTMLElement>>('panel');
 
   readonly abierto = signal(false);
+  readonly sacudiendo = signal(false);
 
   readonly items = this.notificaciones.notificaciones;
   readonly noLeidas = this.notificaciones.noLeidas;
   readonly cargando = this.notificaciones.cargando;
   readonly error = this.notificaciones.error;
+
+  /** Último valor visto de `noLeidas`, para detectar avisos nuevos. */
+  private anteriorSinLeer = this.noLeidas();
+  private temporizador?: ReturnType<typeof setTimeout>;
+
+  constructor() {
+    // Cada vez que sube el contador se sacude el icono una sola vez.
+    effect(() => {
+      const sinLeer = this.noLeidas();
+      const hayNuevas = sinLeer > this.anteriorSinLeer;
+      this.anteriorSinLeer = sinLeer;
+      if (hayNuevas) this.sacudir();
+    });
+
+    inject(DestroyRef).onDestroy(() => {
+      if (this.temporizador) clearTimeout(this.temporizador);
+    });
+  }
 
   readonly etiquetaBoton = computed(() => {
     const sinLeer = this.noLeidas();
@@ -98,6 +122,25 @@ export class Campanita {
 
   async marcarTodas() {
     await this.notificaciones.marcarTodasLeidas();
+  }
+
+  /** Reinicia la sacudida del icono para que se vea con cada aviso nuevo. */
+  private sacudir() {
+    // En SSR no hay animaciones ni `requestAnimationFrame`.
+    if (typeof requestAnimationFrame !== 'function') return;
+
+    if (this.temporizador) clearTimeout(this.temporizador);
+    this.sacudiendo.set(false);
+
+    // Doble rAF: garantiza un repintado sin la clase antes de volver a ponerla,
+    // así la animación arranca de nuevo aunque ya estuviera corriendo.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => this.sacudiendo.set(true));
+    });
+
+    // Respaldo para cuando la animación no dispara `animationend`
+    // (por ejemplo con `prefers-reduced-motion`).
+    this.temporizador = setTimeout(() => this.sacudiendo.set(false), DURACION_SACUDIDA);
   }
 
   /** Texto corto para la fecha del aviso. */

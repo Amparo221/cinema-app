@@ -2,12 +2,14 @@
   <button
     type="button"
     class="btn-campanita"
+    [class.sacudiendo]="sacudiendo()"
     [attr.aria-expanded]="abierto()"
     aria-controls="panel-notificaciones"
     [attr.aria-label]="etiquetaBoton()"
     (click)="alternar()"
+    (animationend)="sacudiendo.set(false)"
   >
-    <span class="icono" aria-hidden="true">🔔</span>
+    <span class="icono" [class.con-alerta]="noLeidas() > 0" aria-hidden="true"></span>
     @if (noLeidas() > 0) {
       <span class="badge" aria-hidden="true">{{ noLeidas() > 9 ? '9+' : noLeidas() }}</span>
     }

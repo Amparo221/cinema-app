@@ -11,8 +11,8 @@
   gap: 1rem;
   padding: 1rem;
   margin-bottom: 1.25rem;
-  background: #fff5f5;
-  border-left: 4px solid #e50914;
+  background: var(--violeta-tenue);
+  border-left: 4px solid var(--violeta);
   border-radius: 6px;
 }
 
@@ -40,8 +40,8 @@
 .btn-quitar-combo {
   padding: 0.45rem 0.9rem;
   background: #fff;
-  color: #b8070f;
-  border: 1px solid #b8070f;
+  color: var(--violeta-oscuro);
+  border: 1px solid var(--violeta-oscuro);
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
@@ -107,8 +107,8 @@
 }
 
 .tab.activo {
-  color: #e50914;
-  border-bottom-color: #e50914;
+  color: var(--violeta);
+  border-bottom-color: var(--violeta);
 }
 
 .tab-contenido {
@@ -173,7 +173,7 @@
 
 .btn-agregar {
   padding: 0.5rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -185,7 +185,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border-radius: 6px;
   padding: 0.25rem;
@@ -249,7 +249,7 @@
 
 .btn-pagar {
   padding: 0.75rem 2rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -259,7 +259,7 @@
 }
 
 .btn-pagar:hover {
-  background: #b8070f;
+  background: var(--violeta-oscuro);
 }
 
 .cartel-edad {

@@ -98,9 +98,17 @@ describe('AdminReporte', () => {
   });
 
   it('vuelve a pedir el ranking al cambiar la agrupación a mes', async () => {
-    const select = fixture.nativeElement.querySelector('#reporte-agrupacion') as HTMLSelectElement;
-    select.value = 'mes';
-    select.dispatchEvent(new Event('change'));
+    const boton = fixture.nativeElement.querySelector(
+      '#reporte-agrupacion',
+    ) as HTMLButtonElement;
+    boton.click();
+    fixture.detectChanges();
+
+    const opciones = Array.from(
+      fixture.nativeElement.querySelectorAll('[role="option"]'),
+    ) as HTMLElement[];
+    const mes = opciones.find(opcion => opcion.textContent?.trim() === 'Mes');
+    mes?.click();
 
     await cargarTodo();
 
@@ -123,10 +131,13 @@ describe('AdminReporte', () => {
     const input = fixture.nativeElement.querySelector('#reporte-desde') as HTMLInputElement;
     reportes.facturacion.mockClear();
 
-    input.value = '2030-01-01';
-    input.dispatchEvent(new Event('change'));
+    // El input enmascarado arma dd/mm/aaaa y avisa el ISO al formulario.
+    input.value = '01012030';
+    input.dispatchEvent(new Event('input'));
     await cargarTodo();
 
+    expect(input.value).toBe('01/01/2030');
+    expect(componente.desde()).toBe('2030-01-01');
     expect(componente.error()).toContain('no puede ser anterior');
     expect(reportes.facturacion).not.toHaveBeenCalled();
   });

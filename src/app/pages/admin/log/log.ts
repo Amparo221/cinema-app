@@ -1,6 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ACCIONES_ACTIVIDAD, RegistroActividad } from '../../../models/actividad.model';
 import { ActividadService } from '../../../services/actividad';
+import { FechaInput } from '../../../shared/fecha-input';
+import { OpcionSelect, Select } from '../../../shared/select/select';
 import {
   REGISTROS_POR_PAGINA,
   claseAccion,
@@ -23,6 +26,7 @@ import {
  */
 @Component({
   selector: 'app-admin-log',
+  imports: [FormsModule, FechaInput, Select],
   templateUrl: './log.html',
   styleUrl: './log.css',
 })
@@ -43,6 +47,11 @@ export class AdminLog implements OnInit {
   readonly total = signal(0);
 
   readonly acciones = ACCIONES_ACTIVIDAD;
+  /** El filtro incluye "Todas" como valor vacío, igual que antes. */
+  readonly opcionesAcciones: readonly OpcionSelect[] = [
+    { valor: '', etiqueta: 'Todas' },
+    ...ACCIONES_ACTIVIDAD,
+  ];
   readonly totalPaginas = computed(() => totalPaginas(this.total(), this.porPagina));
   readonly vacio = computed(() => !this.cargando() && this.registros().length === 0);
   readonly hayFiltros = computed(
@@ -62,18 +71,19 @@ export class AdminLog implements OnInit {
     void this.cargar();
   }
 
-  cambiarDesde(evento: Event): void {
-    this.desde.set(this.valorDe(evento));
+  /** Las fechas llegan en ISO desde el input enmascarado. */
+  cambiarDesde(iso: string): void {
+    this.desde.set(iso);
     this.aplicarFiltros();
   }
 
-  cambiarHasta(evento: Event): void {
-    this.hasta.set(this.valorDe(evento));
+  cambiarHasta(iso: string): void {
+    this.hasta.set(iso);
     this.aplicarFiltros();
   }
 
-  cambiarAccion(evento: Event): void {
-    this.accion.set(this.valorDe(evento));
+  cambiarAccion(valor: string | number | null): void {
+    this.accion.set(valor === null ? '' : String(valor));
     this.aplicarFiltros();
   }
 

@@ -20,13 +20,28 @@ import {
   estaEnPreventa,
   fechaHoy,
 } from '../../../models/preventa.model';
+import { Funcion } from '../../../models/funcion.model';
+import {
+  ResultadoCancelacionFuncion,
+  ResultadoFunciones,
+  SolicitudFunciones,
+  etiquetaIdioma,
+  horaCorta,
+  puedeCancelarFuncion,
+  resumenCancelacion,
+  resumenGeneracion,
+} from '../../../models/programacion.model';
 import { PeliculaForm } from '../../../components/admin/pelicula-form/pelicula-form';
 import { ProductoCandyForm } from '../../../components/admin/producto-candy-form/producto-candy-form';
 import { ComboForm } from '../../../components/admin/combo-form/combo-form';
 import { DescuentosForm } from '../../../components/admin/descuentos-form/descuentos-form';
+import { ProgramacionFunciones } from '../../../components/admin/programacion-funciones/programacion-funciones';
+import { RecortarTexto } from '../../../shared/recortar-texto';
 import {
+  mensajeErrorCancelarFuncion,
   mensajeErrorCombo,
   mensajeErrorDescuentos,
+  mensajeErrorFunciones,
   mensajeErrorPelicula,
 } from './admin-errores';
 
@@ -43,7 +58,7 @@ const ETIQUETAS_CATEGORIA: Record<CategoriaCandy, string> = {
 
 @Component({
   selector: 'app-admin-general',
-  imports: [PeliculaForm, ProductoCandyForm, ComboForm, DescuentosForm],
+  imports: [PeliculaForm, ProductoCandyForm, ComboForm, DescuentosForm, ProgramacionFunciones, RecortarTexto],
   templateUrl: './general.html',
   styleUrl: './general.css',
 })
@@ -90,6 +105,24 @@ export class AdminGeneral implements OnInit {
 
   /** Película que se está editando; null cuando el formulario crea una nueva. */
   peliculaEnEdicion = signal<Pelicula | null>(null);
+
+  /** Película cuyo panel “Reponer funciones” está abierto. */
+  peliculaReponiendo = signal<Pelicula | null>(null);
+  funcionesExistentes = signal<Funcion[]>([]);
+  cargandoFunciones = signal(false);
+  generandoFunciones = signal(false);
+  errorFunciones = signal<string | null>(null);
+  resultadoFunciones = signal<ResultadoFunciones | null>(null);
+
+  /** Función elegida en el panel para cancelarla; null si no hay confirmación abierta. */
+  funcionSeleccionada = signal<Funcion | null>(null);
+  cancelandoFuncion = signal(false);
+  resultadoCancelacion = signal<ResultadoCancelacionFuncion | null>(null);
+
+  /** Helpers puros que usa la plantilla. */
+  readonly horaCorta = horaCorta;
+  readonly resumenFunciones = resumenGeneracion;
+  readonly resumenCancelacionFuncion = resumenCancelacion;
 
   /** Datos con los que se precarga el formulario al editar. */
   readonly datosInicialesPelicula = computed<DatosPelicula | null>(() => {
@@ -265,7 +298,7 @@ export class AdminGeneral implements OnInit {
    * Sirve para crear y para editar: si hay película en edición se actualiza,
    * y la imagen solo se sube cuando el admin elige una nueva.
    */
-  async guardarPelicula({ datos, archivo }: SalidaPelicula) {
+  async guardarPelicula({ datos, archivo, funciones }: SalidaPelicula) {
     if (this.guardandoPelicula()) return;
 
     this.guardandoPelicula.set(true);
@@ -292,7 +325,7 @@ export class AdminGeneral implements OnInit {
       }
 
       const datosCompletos = { ...datos, imagen: nombreImagen };
-      const { error } = enEdicion
+      const { data, error } = enEdicion
         ? await this.supabase.actualizarPelicula(enEdicion.id, datosCompletos)
         : await this.supabase.crearPelicula(datosCompletos);
 
@@ -301,12 +334,20 @@ export class AdminGeneral implements OnInit {
         return;
       }
 
+      const creada = enEdicion ? null : ((data as Pelicula | null) ?? null);
+
       this.mostrarFormPelicula.set(false);
       this.peliculaEnEdicion.set(null);
       this.mensaje.set(
         enEdicion ? 'Película actualizada correctamente.' : 'Película creada correctamente.'
       );
       await this.cargarDatos();
+
+      // La programación elegida en el alta se genera después de crear la
+      // película: la RPC necesita su id.
+      if (creada && funciones) {
+        await this.generarFuncionesAlCrear(creada, funciones);
+      }
     } catch {
       this.error.set('No se pudo guardar la película. Intentá nuevamente.');
     } finally {
@@ -436,6 +477,195 @@ export class AdminGeneral implements OnInit {
     } finally {
       this.guardandoDescuentos.set(false);
     }
+  }
+
+  /**
+   * Abre o cierra el panel de funciones. Al abrirlo se cargan las
+   * próximas funciones de la película.
+   */
+  async alternarReponer(pelicula: Pelicula) {
+    if (this.peliculaReponiendo()?.id === pelicula.id) {
+      this.cerrarReponer();
+      return;
+    }
+
+    this.error.set(null);
+    this.mensaje.set(null);
+    await this.abrirReponer(pelicula);
+  }
+
+  cerrarReponer() {
+    this.peliculaReponiendo.set(null);
+    this.funcionesExistentes.set([]);
+    this.errorFunciones.set(null);
+    this.resultadoFunciones.set(null);
+    this.funcionSeleccionada.set(null);
+    this.resultadoCancelacion.set(null);
+  }
+
+  private async abrirReponer(pelicula: Pelicula) {
+    this.peliculaReponiendo.set(pelicula);
+    this.peliculasExpandidas.set(true);
+    this.errorFunciones.set(null);
+    this.resultadoFunciones.set(null);
+    this.funcionSeleccionada.set(null);
+    this.resultadoCancelacion.set(null);
+    this.funcionesExistentes.set([]);
+    await this.cargarFuncionesDePelicula(pelicula.id);
+  }
+
+  /** Genera el lote que armó el panel (automático o manual). */
+  async generarFunciones(pelicula: Pelicula, solicitud: SolicitudFunciones) {
+    if (this.generandoFunciones()) return;
+
+    this.generandoFunciones.set(true);
+    this.errorFunciones.set(null);
+    this.resultadoFunciones.set(null);
+
+    try {
+      const respuesta = await this.ejecutarGeneracion(pelicula.id, solicitud);
+
+      if (respuesta.error) {
+        this.errorFunciones.set(mensajeErrorFunciones(respuesta.error.message));
+        return;
+      }
+
+      const resultado = (respuesta.data ?? { creadas: [], omitidas: [] }) as ResultadoFunciones;
+      this.resultadoFunciones.set(resultado);
+      this.mensaje.set(resumenGeneracion(resultado));
+      await this.cargarFuncionesDePelicula(pelicula.id);
+    } catch {
+      this.errorFunciones.set('No se pudieron generar las funciones. Intentá nuevamente.');
+    } finally {
+      this.generandoFunciones.set(false);
+    }
+  }
+
+  /** Después del alta: deja el panel abierto con el resultado a la vista. */
+  private async generarFuncionesAlCrear(pelicula: Pelicula, solicitud: SolicitudFunciones) {
+    await this.abrirReponer(pelicula);
+
+    try {
+      const respuesta = await this.ejecutarGeneracion(pelicula.id, solicitud);
+
+      if (respuesta.error) {
+        this.error.set(
+          `Película creada, pero no se generaron las funciones: ${mensajeErrorFunciones(respuesta.error.message)}`
+        );
+        return;
+      }
+
+      const resultado = (respuesta.data ?? { creadas: [], omitidas: [] }) as ResultadoFunciones;
+      this.resultadoFunciones.set(resultado);
+      this.mensaje.set(`Película creada. ${resumenGeneracion(resultado)}`);
+      await this.cargarFuncionesDePelicula(pelicula.id);
+    } catch {
+      this.error.set('Película creada, pero no se pudieron generar las funciones.');
+    }
+  }
+
+  /** `true` si la función todavía no empezó y se puede cancelar. */
+  puedeCancelar(funcion: Funcion): boolean {
+    return puedeCancelarFuncion(funcion);
+  }
+
+  /** Abre la confirmación; volver a tocar el mismo chip la cierra. */
+  seleccionarFuncion(funcion: Funcion) {
+    if (this.cancelandoFuncion() || !this.puedeCancelar(funcion)) return;
+
+    if (this.funcionSeleccionada()?.id === funcion.id) {
+      this.descartarSeleccion();
+      return;
+    }
+
+    this.errorFunciones.set(null);
+    this.resultadoCancelacion.set(null);
+    this.funcionSeleccionada.set(funcion);
+  }
+
+  descartarSeleccion() {
+    this.funcionSeleccionada.set(null);
+  }
+
+  /** RPC: cancela la función elegida, acredita a los compradores y recarga. */
+  async cancelarFuncionSeleccionada() {
+    const funcion = this.funcionSeleccionada();
+    const pelicula = this.peliculaReponiendo();
+
+    if (!funcion || !pelicula || this.cancelandoFuncion()) return;
+
+    this.cancelandoFuncion.set(true);
+    this.errorFunciones.set(null);
+    this.resultadoCancelacion.set(null);
+
+    try {
+      const respuesta = await this.supabase.cancelarFuncion(funcion.id);
+
+      if (respuesta.error) {
+        this.errorFunciones.set(mensajeErrorCancelarFuncion(respuesta.error.message));
+        return;
+      }
+
+      const resultado = (respuesta.data ?? {
+        compras: 0,
+        entradas: 0,
+        usuarios: 0,
+        anonimas: 0,
+        credito: 0,
+        puntos_devueltos: 0,
+        puntos_ganados: 0,
+      }) as ResultadoCancelacionFuncion;
+
+      this.resultadoCancelacion.set(resultado);
+      this.mensaje.set(resumenCancelacion(resultado));
+      this.funcionSeleccionada.set(null);
+      this.resultadoFunciones.set(null);
+      await this.cargarFuncionesDePelicula(pelicula.id);
+    } catch {
+      this.errorFunciones.set('No se pudo cancelar la función. Intentá nuevamente.');
+    } finally {
+      this.cancelandoFuncion.set(false);
+    }
+  }
+
+  private ejecutarGeneracion(peliculaId: number, solicitud: SolicitudFunciones) {
+    return solicitud.modo === 'automatica'
+      ? this.supabase.generarFuncionesAutomaticas(peliculaId, solicitud)
+      : this.supabase.crearFuncionesManuales(peliculaId, solicitud.funciones);
+  }
+
+  private async cargarFuncionesDePelicula(peliculaId: number) {
+    this.cargandoFunciones.set(true);
+
+    try {
+      const { data, error } = await this.supabase.getFuncionesDePelicula(peliculaId);
+
+      if (error) {
+        this.errorFunciones.set(`No se pudieron cargar las funciones: ${error.message}`);
+        this.funcionesExistentes.set([]);
+        return;
+      }
+
+      this.funcionesExistentes.set((data ?? []) as unknown as Funcion[]);
+    } catch {
+      this.errorFunciones.set('No se pudieron cargar las funciones. Intentá nuevamente.');
+    } finally {
+      this.cargandoFunciones.set(false);
+    }
+  }
+
+  /** Primera fecha programable: la del estreno si todavía no se estrenó. */
+  fechaMinimaPelicula(pelicula: Pelicula): string {
+    if (esProximamente(pelicula, this.hoy) && pelicula.fecha_estreno) {
+      return pelicula.fecha_estreno;
+    }
+
+    return this.hoy;
+  }
+
+  /** “Doblada · 2D” para la lista de funciones existentes. */
+  etiquetaFuncion(funcion: Funcion): string {
+    return `${etiquetaIdioma(funcion.idioma)} · ${funcion.formato ?? '2D'}`;
   }
 
   /** Nombres de los dos productos incluidos, para la tabla de recompensas. */

@@ -1,0 +1,49 @@
+<button
+  type="button"
+  class="caja"
+  role="combobox"
+  aria-haspopup="listbox"
+  [id]="idBoton()"
+  [attr.aria-expanded]="abierto()"
+  [attr.aria-controls]="idLista()"
+  [attr.aria-activedescendant]="abierto() ? opcionId(activo()) : null"
+  [attr.aria-label]="etiquetaAria()"
+  [attr.aria-invalid]="invalido() ? 'true' : null"
+  [attr.aria-describedby]="ayudaId()"
+  [disabled]="deshabilitado()"
+  (click)="alternar()"
+  (keydown)="alTeclear($event)"
+  (blur)="alSalir()"
+>
+  <span class="texto" [class.placeholder]="sinSeleccion()">{{ texto() }}</span>
+  <span class="flecha" aria-hidden="true"></span>
+</button>
+
+<div
+  class="panel"
+  [id]="idLista()"
+  role="listbox"
+  [attr.aria-label]="etiquetaAria()"
+  [attr.aria-hidden]="abierto() ? null : 'true'"
+  [attr.inert]="abierto() ? null : ''"
+>
+  @for (opcion of opciones(); track $index; let i = $index) {
+    <div
+      [id]="opcionId(i)"
+      class="opcion"
+      role="option"
+      [class.activa]="i === activo()"
+      [class.elegida]="opcion.valor === valor()"
+      [class.deshabilitada]="opcion.deshabilitada === true"
+      [attr.aria-selected]="opcion.valor === valor()"
+      [attr.aria-disabled]="opcion.deshabilitada ? 'true' : null"
+      (mouseenter)="activar(i)"
+      (mousedown)="prevenir($event)"
+      (click)="elegir(opcion)"
+    >
+      {{ opcion.etiqueta }}
+    </div>
+  } @empty {
+    <p class="vacio">Sin opciones</p>
+  }
+</div>

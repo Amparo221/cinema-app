@@ -24,19 +24,14 @@
   <div class="fila">
     <div class="campo">
       <label for="combo-producto-1">Producto 1 *</label>
-      <select
+      <app-select
         id="combo-producto-1"
         formControlName="producto_1_id"
-        [attr.aria-invalid]="productoUno.touched && productoUno.invalid ? 'true' : null"
-        [attr.aria-describedby]="
-          productoUno.touched && productoUno.invalid ? 'combo-producto-1-error' : null
-        "
-      >
-        <option [ngValue]="null">Elegí un producto</option>
-        @for (producto of productos(); track producto.id) {
-          <option [ngValue]="producto.id">{{ producto.nombre }}</option>
-        }
-      </select>
+        placeholder="Elegí un producto"
+        [opciones]="opcionesProductos()"
+        [invalido]="productoUno.touched && productoUno.invalid"
+        [ayudaId]="productoUno.touched && productoUno.invalid ? 'combo-producto-1-error' : null"
+      />
       @if (productoUno.touched && productoUno.hasError('required')) {
         <p id="combo-producto-1-error" class="error-campo" role="alert">
           Elegí el primer producto del combo.
@@ -50,19 +45,14 @@
 
     <div class="campo">
       <label for="combo-producto-2">Producto 2 *</label>
-      <select
+      <app-select
         id="combo-producto-2"
         formControlName="producto_2_id"
-        [attr.aria-invalid]="productoDos.touched && productoDos.invalid ? 'true' : null"
-        [attr.aria-describedby]="
-          productoDos.touched && productoDos.invalid ? 'combo-producto-2-error' : null
-        "
-      >
-        <option [ngValue]="null">Elegí un producto</option>
-        @for (producto of productos(); track producto.id) {
-          <option [ngValue]="producto.id">{{ producto.nombre }}</option>
-        }
-      </select>
+        placeholder="Elegí un producto"
+        [opciones]="opcionesProductos()"
+        [invalido]="productoDos.touched && productoDos.invalid"
+        [ayudaId]="productoDos.touched && productoDos.invalid ? 'combo-producto-2-error' : null"
+      />
       @if (productoDos.touched && productoDos.hasError('required')) {
         <p id="combo-producto-2-error" class="error-campo" role="alert">
           Elegí el segundo producto del combo.

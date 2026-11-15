@@ -65,8 +65,7 @@
   font-weight: 600;
 }
 
-.campo input,
-.campo select {
+.campo input {
   padding: 0.45rem 0.55rem;
   border: 1px solid #c9d2e0;
   border-radius: 6px;
@@ -91,8 +90,8 @@ button {
 }
 
 button[type='submit'] {
-  border-color: #2f6feb;
-  background: #2f6feb;
+  border-color: var(--violeta);
+  background: var(--violeta);
   color: #fff;
 }
 
@@ -106,9 +105,8 @@ button:disabled {
 }
 
 button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid #2f6feb;
+input:focus-visible {
+  outline: 2px solid var(--violeta);
   outline-offset: 2px;
 }
 

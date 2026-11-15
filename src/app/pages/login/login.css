@@ -33,7 +33,7 @@ input {
 
 button {
   padding: 0.75rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -52,5 +52,5 @@ button:disabled {
 }
 
 a {
-  color: #e50914;
+  color: var(--violeta);
 }

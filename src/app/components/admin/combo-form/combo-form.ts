@@ -19,6 +19,7 @@ import {
 } from '@angular/forms';
 import { DatosCombo, SalidaCombo } from '../../../models/admin.model';
 import { ProductoCandy } from '../../../models/producto-candy.model';
+import { OpcionSelect, Select } from '../../../shared/select/select';
 
 /** Los dos productos del combo tienen que ser distintos (`combos_puntos_check`). */
 function validarProductosDistintos(control: AbstractControl): ValidationErrors | null {
@@ -50,7 +51,7 @@ function validarPuntosPlus(control: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-combo-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Select],
   templateUrl: './combo-form.html',
   styleUrl: './combo-form.css',
 })
@@ -85,6 +86,11 @@ export class ComboForm {
 
   /** Con datos precargados el formulario edita; sin ellos, crea. */
   readonly esEdicion = computed(() => this.datosIniciales() !== null);
+
+  /** Productos del candy bar como opciones de los dos selects. */
+  readonly opcionesProductos = computed<readonly OpcionSelect[]>(() =>
+    this.productos().map(producto => ({ valor: producto.id, etiqueta: producto.nombre })),
+  );
 
   readonly textoGuardar = computed(() =>
     this.esEdicion() ? 'Guardar cambios' : 'Crear recompensa'

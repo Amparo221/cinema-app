@@ -41,8 +41,8 @@
 
 .combo-seleccionado {
   padding: 1rem;
-  background: #fff5f5;
-  border-left: 4px solid #e50914;
+  background: var(--violeta-tenue);
+  border-left: 4px solid var(--violeta);
   border-radius: 6px;
 }
 
@@ -70,8 +70,8 @@
 .btn-quitar-combo {
   padding: 0.45rem 0.9rem;
   background: #fff;
-  color: #b8070f;
-  border: 1px solid #b8070f;
+  color: var(--violeta-oscuro);
+  border: 1px solid var(--violeta-oscuro);
   border-radius: 6px;
   cursor: pointer;
   white-space: nowrap;
@@ -104,21 +104,21 @@
 .btn-funcion {
   padding: 0.6rem 1rem;
   background: #fff;
-  border: 2px solid #e50914;
-  color: #e50914;
+  border: 2px solid var(--violeta);
+  color: var(--violeta);
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
 }
 
 .btn-funcion:hover {
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
 }
 
 .btn-resena {
   padding: 0.6rem 1.2rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -207,7 +207,7 @@ textarea {
 }
 
 .btn-primario {
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   padding: 0.5rem 1rem;
@@ -217,13 +217,14 @@ textarea {
 
 .error {
   color: #d32f2f;
+}
 
 .preventa-caja {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
   border-radius: 8px;
-  background: #fff5f5;
-  border-left: 4px solid #e50914;
+  background: var(--violeta-tenue);
+  border-left: 4px solid var(--violeta);
 }
 
 .preventa-caja p {
@@ -236,8 +237,8 @@ textarea {
   display: inline-block;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: #ffe0e2;
-  color: #b8070f;
+  background: var(--violeta-tenue);
+  color: var(--violeta-oscuro);
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -264,12 +265,12 @@ textarea {
 
 .check-aviso input {
   margin-top: 0.15rem;
-  accent-color: #e50914;
+  accent-color: var(--violeta);
   flex-shrink: 0;
 }
 
 .check-aviso input:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
 }
 
@@ -278,11 +279,11 @@ textarea {
   margin-top: 0.6rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #b8070f;
+  color: var(--violeta-oscuro);
 }
 
 .aviso-login:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -303,6 +304,4 @@ textarea {
   background: #fff4e5;
   color: #8a4b00;
   font-size: 0.9rem;
-}
-
 }

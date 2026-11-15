@@ -2,7 +2,7 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  background: #fff;
+  background: var(--superficie);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -33,7 +33,7 @@ input {
 
 button {
   padding: 0.75rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -47,10 +47,104 @@ button:disabled {
 }
 
 .error {
-  color: #d32f2f;
+  color: var(--error);
   margin: 0;
 }
 
 a {
-  color: #e50914;
+  color: var(--violeta);
+}
+
+input:focus-visible {
+  outline: 3px solid var(--violeta);
+  outline-offset: 1px;
+}
+
+.ayuda {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #5a5a5a;
+}
+
+.colores {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.colores legend {
+  padding: 0;
+  font-weight: 500;
+}
+
+.opciones-color {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+/* Los radios quedan invisibles, pero siguen siendo accesibles con el teclado. */
+.opcion-color {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.opcion-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.opcion-color:focus-within {
+  outline: 3px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.opcion-color.activa {
+  border-color: var(--violeta);
+  background: var(--violeta-tenue);
+  color: var(--violeta-oscuro);
+}
+
+.punto {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.punto-azul {
+  background: #4a90d9;
+}
+
+.punto-verde {
+  background: #4e9a51;
+}
+
+.punto-marron {
+  background: #7b4a1e;
+}
+
+.punto-otro {
+  background: linear-gradient(135deg, #4a90d9, #4e9a51, #7b4a1e);
+}
+
+.color-propio {
+  margin-top: 0.5rem;
+}
+
+button:hover:not(:disabled) {
+  background: var(--violeta-oscuro);
 }

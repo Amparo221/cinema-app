@@ -15,10 +15,10 @@
         <label for="log-desde">Desde</label>
         <input
           id="log-desde"
-          type="date"
-          [value]="desde()"
-          [max]="hasta() || null"
-          (change)="cambiarDesde($event)"
+          appFecha
+          [ngModel]="desde()"
+          (ngModelChange)="cambiarDesde($event)"
+          [ngModelOptions]="{ standalone: true }"
         />
       </div>
 
@@ -26,21 +26,21 @@
         <label for="log-hasta">Hasta</label>
         <input
           id="log-hasta"
-          type="date"
-          [value]="hasta()"
-          [min]="desde() || null"
-          (change)="cambiarHasta($event)"
+          appFecha
+          [ngModel]="hasta()"
+          (ngModelChange)="cambiarHasta($event)"
+          [ngModelOptions]="{ standalone: true }"
         />
       </div>
 
       <div class="campo">
         <label for="log-accion">Acción</label>
-        <select id="log-accion" [value]="accion()" (change)="cambiarAccion($event)">
-          <option value="">Todas</option>
-          @for (opcion of acciones; track opcion.valor) {
-            <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
-          }
-        </select>
+        <app-select
+          id="log-accion"
+          [opciones]="opcionesAcciones"
+          [valor]="accion()"
+          (valorChange)="cambiarAccion($event)"
+        />
       </div>
 
       <div class="campo">

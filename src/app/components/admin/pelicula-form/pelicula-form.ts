@@ -8,6 +8,7 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -19,9 +20,20 @@ import {
 } from '@angular/forms';
 import { DatosPelicula, SalidaPelicula } from '../../../models/admin.model';
 import { fechaHoy } from '../../../models/preventa.model';
+import { FechaInput } from '../../../shared/fecha-input';
+import { OpcionSelect, Select } from '../../../shared/select/select';
+import { ProgramacionFunciones } from '../programacion-funciones/programacion-funciones';
 
 const TIPOS_IMAGEN = ['image/png', 'image/jpeg', 'image/webp'];
 const TAMANIO_MAXIMO = 5 * 1024 * 1024;
+
+/** Clasificaciones que acepta `peliculas.restriccion_edad`. */
+const CLASIFICACIONES: readonly OpcionSelect[] = [
+  { valor: 'sin_restriccion', etiqueta: 'Sin restricción' },
+  { valor: '13+', etiqueta: '13+' },
+  { valor: '16+', etiqueta: '16+' },
+  { valor: '18+', etiqueta: '18+' },
+];
 
 /** La fecha de estreno solo es obligatoria si la película es un estreno. */
 function validarFechaEstreno(control: AbstractControl): ValidationErrors | null {
@@ -46,7 +58,7 @@ function validarPrecioPreventa(control: AbstractControl): ValidationErrors | nul
 
 @Component({
   selector: 'app-pelicula-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, FechaInput, Select, ProgramacionFunciones],
   templateUrl: './pelicula-form.html',
   styleUrl: './pelicula-form.css',
 })
@@ -84,20 +96,37 @@ export class PeliculaForm {
     { initialValue: this.form.controls.proximamente.value }
   );
 
+  /** Necesario para calcular la primera fecha programable de funciones. */
+  private readonly valorFechaEstreno = toSignal(
+    this.form.controls.fecha_estreno.valueChanges,
+    { initialValue: this.form.controls.fecha_estreno.value }
+  );
+
   readonly esEstreno = computed(() => this.valorProximamente() === true);
 
   /** Con datos precargados el formulario edita; sin ellos, crea. */
   readonly esEdicion = computed(() => this.datosIniciales() !== null);
 
+  readonly opcionesClasificacion = CLASIFICACIONES;
+
+  /** Programación opcional de funciones: solo al crear la película. */
+  programarFunciones = signal(false);
+  errorProgramacion = signal<string | null>(null);
+  readonly programacion = viewChild(ProgramacionFunciones);
+
   /** Texto del botón principal. */
   readonly textoGuardar = computed(() => (this.esEdicion() ? 'Guardar cambios' : 'Crear película'));
-
-  readonly hoy = fechaHoy();
 
   /** Aviso no bloqueante: más de 20 caracteres sin ninguna coma. */
   readonly recordatorioGeneros = computed(() => {
     const valor = this.valorGeneros().trim();
     return valor.length > 20 && !valor.includes(',');
+  });
+
+  /** Primera fecha programable: la del estreno si es un estreno, si no hoy. */
+  readonly fechaMinimaProgramacion = computed(() => {
+    const estreno = this.valorFechaEstreno();
+    return this.esEstreno() && estreno ? estreno : fechaHoy();
   });
 
   archivoImagen = signal<File | null>(null);
@@ -122,6 +151,13 @@ export class PeliculaForm {
     effect(() => {
       const inicial = this.datosIniciales();
       untracked(() => this.cargarDatosIniciales(inicial));
+    });
+
+    // Si la programación se vuelve válida, se descarta el error del submit.
+    effect(() => {
+      if (this.programacion()?.puedeGenerar()) {
+        untracked(() => this.errorProgramacion.set(null));
+      }
     });
   }
 
@@ -223,6 +259,11 @@ export class PeliculaForm {
     this.errorImagen.set(null);
   }
 
+  alternarProgramacion(evento: Event) {
+    this.programarFunciones.set((evento.target as HTMLInputElement).checked);
+    this.errorProgramacion.set(null);
+  }
+
   onSubmit() {
     if (this.guardando()) return;
 
@@ -237,6 +278,20 @@ export class PeliculaForm {
     }
 
     if (this.form.invalid || faltaImagen) return;
+
+    // Solo al crear: la programación es opcional, pero si se marcó tiene
+    // que ser válida antes de enviar la película.
+    const programacion = this.programacion();
+    const quiereProgramar = !this.esEdicion() && this.programarFunciones();
+
+    if (quiereProgramar && !programacion?.puedeGenerar()) {
+      this.errorProgramacion.set(
+        'Revisá la programación de funciones: faltan datos o hay horarios en conflicto.'
+      );
+      return;
+    }
+
+    this.errorProgramacion.set(null);
 
     const valor = this.form.getRawValue();
 
@@ -256,6 +311,7 @@ export class PeliculaForm {
         proximamente: valor.proximamente,
       },
       archivo,
+      funciones: quiereProgramar ? (programacion?.solicitud() ?? null) : null,
     });
   }
 

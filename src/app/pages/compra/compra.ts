@@ -380,6 +380,8 @@ export class Compra implements OnInit, OnDestroy {
       .from('funciones')
       .select('*, peliculas (*), salas (nombre)')
       .eq('id', this.funcionId())
+      .is('cancelada_at', null)
+
       .single();
 
     if (funcion) {

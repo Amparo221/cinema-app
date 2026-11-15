@@ -13,6 +13,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CategoriaCandy } from '../../../models/producto-candy.model';
+import { Select } from '../../../shared/select/select';
 import {
   DatosProductoCandy,
   SalidaProductoCandy,
@@ -36,7 +37,7 @@ const CATEGORIAS: readonly OpcionCategoria[] = [
 
 @Component({
   selector: 'app-producto-candy-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Select],
   templateUrl: './producto-candy-form.html',
   styleUrl: './producto-candy-form.css',
 })

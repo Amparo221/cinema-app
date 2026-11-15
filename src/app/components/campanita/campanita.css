@@ -16,22 +16,78 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--borde-control);
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: var(--superficie);
+  box-shadow: 0 2px 8px rgba(128, 0, 128, 0.18);
   cursor: pointer;
-  font-size: 1.25rem;
   line-height: 1;
 }
 
 .btn-campanita:hover {
-  background: #f7f7f7;
+  background: var(--violeta-tenue);
 }
 
 .btn-campanita:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
+}
+
+/*
+ * El SVG se usa como máscara para que el icono tome el violeta de la marca
+ * (los archivos originales están en negro). `transform-origin` arriba imita
+ * el punto de anclaje de una campana real.
+ */
+.icono {
+  width: 22px;
+  height: 22px;
+  background-color: var(--violeta);
+  -webkit-mask-image: url('/bell2.svg');
+  mask-image: url('/bell2.svg');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  transform-origin: 50% 12%;
+}
+
+.icono.con-alerta {
+  -webkit-mask-image: url('/bell_noti2.svg');
+  mask-image: url('/bell_noti2.svg');
+}
+
+/* Adaptado de bell-shake.md: la amplitud decae como la de un péndulo. */
+.btn-campanita.sacudiendo .icono {
+  animation: campanita-sacudir 1.1s ease-in-out;
+}
+
+@keyframes campanita-sacudir {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  12% {
+    transform: rotate(13deg);
+  }
+
+  30% {
+    transform: rotate(-11deg);
+  }
+
+  48% {
+    transform: rotate(8deg);
+  }
+
+  64% {
+    transform: rotate(-5deg);
+  }
+
+  80% {
+    transform: rotate(2deg);
+  }
 }
 
 .badge {
@@ -41,12 +97,51 @@
   min-width: 20px;
   padding: 0 5px;
   border-radius: 999px;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 20px;
   text-align: center;
+}
+
+/* Onda violeta que late mientras haya avisos sin leer. */
+.badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 2px var(--violeta);
+  animation: campanita-ping 4s ease-out infinite;
+}
+
+@keyframes campanita-ping {
+  0%,
+  4% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  20% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-campanita.sacudiendo .icono,
+  .badge::after {
+    animation: none;
+  }
+
+  .badge::after {
+    opacity: 0;
+  }
 }
 
 .panel {
@@ -57,15 +152,16 @@
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--superficie);
+  border: 1px solid var(--borde-control);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(60, 20, 70, 0.22);
   overflow: hidden;
   color: #1c1c1c;
 }
 
 .panel:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
 }
 
@@ -74,7 +170,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--violeta-tenue);
 }
 
 .panel-cabecera h2 {
@@ -97,7 +193,7 @@
 }
 
 .btn-cerrar:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
 }
 
@@ -112,8 +208,8 @@
 .panel-error {
   margin: 0;
   padding: 0.6rem 1rem;
-  background: #fdecea;
-  color: #b00020;
+  background: var(--error-fondo);
+  color: var(--error);
   font-size: 0.85rem;
 }
 
@@ -125,7 +221,7 @@
 }
 
 .lista li + li {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--violeta-tenue);
 }
 
 .item {
@@ -143,16 +239,16 @@
 }
 
 .item:hover {
-  background: #fafafa;
+  background: #faf7fc;
 }
 
 .item:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: -3px;
 }
 
 .item.sin-leer {
-  background: #fff8f8;
+  background: var(--violeta-tenue);
 }
 
 .item-titulo {
@@ -176,29 +272,29 @@
   height: 8px;
   margin-right: 0.35rem;
   border-radius: 50%;
-  background: #e50914;
+  background: var(--violeta);
   vertical-align: middle;
 }
 
 .panel-pie {
   padding: 0.6rem 1rem;
-  border-top: 1px solid #eee;
-  background: #fafafa;
+  border-top: 1px solid var(--violeta-tenue);
+  background: #faf7fc;
 }
 
 .btn-marcar {
   width: 100%;
   padding: 0.45rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--borde-control);
   border-radius: 6px;
-  background: #fff;
-  color: #1c1c1c;
+  background: var(--superficie);
+  color: var(--violeta-oscuro);
   font-size: 0.85rem;
   cursor: pointer;
 }
 
 .btn-marcar:hover:enabled {
-  background: #f0f0f0;
+  background: var(--violeta-tenue);
 }
 
 .btn-marcar:disabled {
@@ -207,7 +303,7 @@
 }
 
 .btn-marcar:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--violeta);
   outline-offset: 2px;
 }
 

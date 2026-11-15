@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  mensajeErrorCancelarFuncion,
   mensajeErrorCombo,
   mensajeErrorDescuentos,
+  mensajeErrorFunciones,
   mensajeErrorPelicula,
 } from './admin-errores';
 
@@ -70,6 +72,56 @@ describe('admin-errores', () => {
       expect(
         mensajeErrorDescuentos('function public.guardar_descuentos(numeric, numeric) does not exist')
       ).toContain('20261029150000_admin_descuentos.sql');
+    });
+  });
+
+  describe('mensajeErrorFunciones', () => {
+    it('explica el choque de sala', () => {
+      expect(mensajeErrorFunciones('FUNCION_SOLAPADA')).toContain('30 minutos');
+    });
+
+    it('explica que no hay salas libres', () => {
+      expect(mensajeErrorFunciones('SIN_SALAS_DISPONIBLES')).toContain('No hay salas libres');
+    });
+
+    it('explica una ventana horaria insuficiente', () => {
+      expect(mensajeErrorFunciones('VENTANA_INSUFICIENTE')).toContain('ventana horaria');
+    });
+
+    it('explica el rechazo por rol', () => {
+      expect(mensajeErrorFunciones('NO_AUTORIZADO')).toBe(
+        'Solo un administrador puede programar funciones.'
+      );
+    });
+
+    it('avisa si falta la migración', () => {
+      expect(
+        mensajeErrorFunciones('function public.crear_funciones_manuales(bigint, jsonb) does not exist')
+      ).toContain('20261114160000_funciones_programacion.sql');
+    });
+  });
+
+  describe('mensajeErrorCancelarFuncion', () => {
+    it('explica el rechazo por rol', () => {
+      expect(mensajeErrorCancelarFuncion('NO_AUTORIZADO')).toBe(
+        'Solo un administrador puede cancelar funciones.'
+      );
+    });
+
+    it('explica que la función ya empezó', () => {
+      expect(mensajeErrorCancelarFuncion('FUNCION_EN_PASADO')).toBe(
+        'La función ya comenzó: no se puede cancelar.'
+      );
+    });
+
+    it('explica que la función ya estaba cancelada', () => {
+      expect(mensajeErrorCancelarFuncion('FUNCION_YA_CANCELADA')).toContain('ya estaba cancelada');
+    });
+
+    it('avisa si falta la migración', () => {
+      expect(
+        mensajeErrorCancelarFuncion('function public.cancelar_funcion(bigint) does not exist')
+      ).toContain('20261114170000_cancelar_funcion.sql');
     });
   });
 });

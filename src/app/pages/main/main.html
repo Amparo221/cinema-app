@@ -48,16 +48,12 @@
 
       <div class="filtros">
         <label for="filtro-genero">Filtrar por género:</label>
-        <select
+        <app-select
           id="filtro-genero"
-          [ngModel]="generoFiltro()"
-          (ngModelChange)="generoFiltro.set($event)"
-        >
-          <option value="">Todos</option>
-          @for (genero of generosDisponibles(); track genero) {
-            <option [value]="genero">{{ genero }}</option>
-          }
-        </select>
+          [opciones]="opcionesGeneros()"
+          [valor]="generoFiltro()"
+          (valorChange)="cambiarGenero($event)"
+        />
       </div>
 
       @if (peliculasFiltradas().length === 0) {
@@ -109,15 +105,12 @@
 
             @if (peliculasEnCartelera().length > 0) {
               <label [for]="'pelicula-combo-' + combo.id">Elegí una película</label>
-              <select
-                [id]="'pelicula-combo-' + combo.id"
-                [ngModel]="peliculaPorCombo()[combo.id]"
-                (ngModelChange)="seleccionarPeliculaCombo(combo.id, $event)"
-              >
-                @for (pelicula of peliculasEnCartelera(); track pelicula.id) {
-                  <option [ngValue]="pelicula.id">{{ pelicula.nombre }}</option>
-                }
-              </select>
+              <app-select
+                [idControl]="'pelicula-combo-' + combo.id"
+                [opciones]="opcionesPeliculas()"
+                [valor]="peliculaPorCombo()[combo.id] ?? null"
+                (valorChange)="seleccionarPeliculaCombo(combo.id, $event)"
+              />
             }
 
             <button type="button" class="btn-combo" (click)="irACombo(combo)">

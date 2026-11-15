@@ -76,9 +76,15 @@ describe('AdminLog', () => {
   });
 
   it('filtra por acción y vuelve a la primera página', async () => {
-    const select = fixture.nativeElement.querySelector('#log-accion') as HTMLSelectElement;
-    select.value = 'qr_validado';
-    select.dispatchEvent(new Event('change'));
+    const boton = fixture.nativeElement.querySelector('#log-accion') as HTMLButtonElement;
+    boton.click();
+    fixture.detectChanges();
+
+    const opciones = Array.from(
+      fixture.nativeElement.querySelectorAll('[role="option"]'),
+    ) as HTMLElement[];
+    const qr = opciones.find(opcion => opcion.textContent?.trim() === 'QR validado');
+    qr?.click();
 
     await fixture.whenStable();
     fixture.detectChanges();

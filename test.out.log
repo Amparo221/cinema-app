@@ -1,0 +1,58 @@
+
+> supabase-angular@0.0.0 test
+> ng test --watch=false
+
+❯ Building...
+✔ Building...
+Application bundle generation complete. [6.349 seconds] - 2026-11-15T22:00:27.240Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90mC:/Users/ampiu/Desktop/supabase-angular[39m
+
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/grafico-barras/grafico-barras.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 624[2mms[22m[39m
+     [33m[2m✓[22m[39m muestra el título y una barra por dato [33m 445[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/shared/select/select.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 1003[2mms[22m[39m
+     [33m[2m✓[22m[39m mueve el id del host al botón para que el label lo enfoque [33m 362[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/admin/descuentos-form/descuentos-form.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1018[2mms[22m[39m
+     [33m[2m✓[22m[39m arranca con los valores por defecto [33m 744[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/admin/combo-form/combo-form.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1367[2mms[22m[39m
+     [33m[2m✓[22m[39m no emite si los dos productos son el mismo [33m 786[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/shared/fecha-input.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 393[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/services/notificaciones.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/admin/reporte/reporte-datos.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/models/programacion.model.spec.ts [2m([22m[2m25 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/escaner-camara/escaner-camara.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 1833[2mms[22m[39m
+     [33m[2m✓[22m[39m arranca el escaneo sobre su contenedor y solo para QR [33m 631[2mms[22m[39m
+     [33m[2m✓[22m[39m muestra el motivo real cuando la cámara no arranca [33m 390[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/models/preventa.model.spec.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/admin/log/log-datos.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/shared/fecha-mascara.spec.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/escaner-camara/escaner-camara-errores.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/admin/general/admin-errores.spec.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/models/butaca.model.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/escaner/escaner-errores.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/services/reserva-butacas.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 73[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/models/combo.model.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/shared/recortar-texto.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/core/permisos.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/services/session.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 79[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/compra/compra.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1481[2mms[22m[39m
+     [33m[2m✓[22m[39m prepara el resumen normal y navega a pago cuando hay butacas [33m 822[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/pago/pago.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 1398[2mms[22m[39m
+     [33m[2m✓[22m[39m confirma una compra normal con una sola RPC atómica [33m 1025[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/core/guards/admin.guard.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/escaner/escaner.spec.ts [2m([22m[2m16 tests[22m[2m)[22m[33m 2041[2mms[22m[39m
+     [33m[2m✓[22m[39m arranca mostrando la cámara y sin resultado [33m 792[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/admin/log/log.spec.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 1801[2mms[22m[39m
+     [33m[2m✓[22m[39m pide la primera página sin filtros [33m 884[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/pages/admin/reporte/reporte.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 2001[2mms[22m[39m
+     [33m[2m✓[22m[39m pide los cuatro reportes con el rango de los últimos 7 días [33m 1172[2mms[22m[39m
+     [33m[2m✓[22m[39m suma los totales y arma las series de los gráficos [33m 363[2mms[22m[39m
+ [32m✓[39m [30m[45m supabase-angular [49m[39m src/app/components/admin/pelicula-form/pelicula-form.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1645[2mms[22m[39m
+     [33m[2m✓[22m[39m al crear exige una imagen antes de emitir [33m 1243[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m28 passed[39m[22m[90m (28)[39m
+[2m      Tests [22m [1m[32m260 passed[39m[22m[90m (260)[39m
+[2m   Start at [22m 19:00:27
+[2m   Duration [22m 11.40s[2m (transform 5.79s, setup 34.56s, import 15.13s, tests 16.97s, environment 121.28s)[22m
+

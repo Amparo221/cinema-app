@@ -24,18 +24,63 @@
 
     <label>
       Fecha de nacimiento
-      <input type="date" [(ngModel)]="fecha_nacimiento" name="fecha_nacimiento" required />
+      <input
+        appFecha
+        [(ngModel)]="fecha_nacimiento"
+        name="fecha_nacimiento"
+        required
+        aria-describedby="ayuda-fecha-nacimiento"
+      />
+      <span id="ayuda-fecha-nacimiento" class="ayuda">Escribí día, mes y año: 07/09/1990</span>
     </label>
 
     <label>
       Tipo de sangre
-      <input type="text" [(ngModel)]="tipo_sangre" name="tipo_sangre" required />
+      <app-select
+        [(ngModel)]="tipo_sangre"
+        name="tipo_sangre"
+        required
+        placeholder="Elegí tu tipo de sangre"
+        [opciones]="opcionesSangre"
+      />
     </label>
 
-    <label>
-      Color de ojos
-      <input type="text" [(ngModel)]="color_ojos" name="color_ojos" required />
-    </label>
+    <fieldset class="colores">
+      <legend>Color de ojos</legend>
+
+      <div class="opciones-color">
+        @for (color of coloresOjos; track color.valor) {
+          <label class="opcion-color" [class.activa]="color_ojos_opcion === color.valor">
+            <input
+              type="radio"
+              name="color_ojos_opcion"
+              [value]="color.valor"
+              [(ngModel)]="color_ojos_opcion"
+              required
+            />
+            <span [class]="'punto punto-' + color.clase"></span>
+            {{ color.valor }}
+          </label>
+        }
+      </div>
+
+      @if (color_ojos_opcion === 'Otro') {
+        <label class="color-propio">
+          ¿Cuál?
+          <input
+            type="text"
+            [(ngModel)]="color_ojos_otro"
+            name="color_ojos_otro"
+            [attr.maxlength]="maximoColorPropio"
+            required
+            aria-describedby="ayuda-color-propio"
+          />
+          <span id="ayuda-color-propio" class="ayuda">
+            {{ color_ojos_otro.length }}/{{ maximoColorPropio }} caracteres
+          </span>
+        </label>
+      }
+    </fieldset>
 
     <label>
       Días de vacaciones por año

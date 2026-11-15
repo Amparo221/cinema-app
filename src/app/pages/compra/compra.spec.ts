@@ -41,6 +41,7 @@ describe('Compra', () => {
   const funcionQuery = {
     select: () => funcionQuery,
     eq: () => funcionQuery,
+    is: () => funcionQuery,
     single: async () => ({
       data: {
         id: 1,

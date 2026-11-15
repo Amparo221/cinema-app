@@ -67,6 +67,92 @@ export function mensajeErrorDescuentos(mensaje: string): string {
   return `No se pudieron guardar los descuentos: ${mensaje}`;
 }
 
+/** Errores de las RPC de programación de funciones. */
+export function mensajeErrorFunciones(mensaje: string): string {
+  if (mensaje.includes('NO_AUTORIZADO')) {
+    return 'Solo un administrador puede programar funciones.';
+  }
+  if (mensaje.includes('FUNCION_SOLAPADA')) {
+    return 'La sala ya está ocupada en ese horario. Dejá 30 minutos entre funciones.';
+  }
+  if (mensaje.includes('SIN_SALAS_DISPONIBLES')) {
+    return 'No hay salas libres para todos los horarios elegidos. Probá con otra fecha u horario.';
+  }
+  if (mensaje.includes('RANGO_INVALIDO')) {
+    return 'El rango de fechas no es válido para esta película. Revisá desde, hasta y la fecha de estreno.';
+  }
+  if (mensaje.includes('DIAS_INVALIDOS')) {
+    return 'Elegí al menos un día de la semana.';
+  }
+  if (mensaje.includes('CANTIDAD_INVALIDA')) {
+    return 'La cantidad de funciones por día tiene que estar entre 1 y 12.';
+  }
+  if (mensaje.includes('VENTANA_INVALIDA') || mensaje.includes('VENTANA_INSUFICIENTE')) {
+    return 'La ventana horaria no alcanza para la duración de la película más 30 minutos entre funciones.';
+  }
+  if (mensaje.includes('SIN_TIPOS') || mensaje.includes('TIPO_INVALIDO')) {
+    return 'Revisá los idiomas y formatos elegidos: Doblada/Subtitulada y 2D/3D/4D/5D.';
+  }
+  if (mensaje.includes('SIN_FECHAS') || mensaje.includes('SIN_FUNCIONES')) {
+    return 'No hay fechas u horarios para programar.';
+  }
+  if (mensaje.includes('FUNCION_DUPLICADA')) {
+    return 'La película ya tiene una función en ese horario.';
+  }
+  if (mensaje.includes('FUNCION_EN_PASADO')) {
+    return 'Alguna fecha es anterior al mínimo permitido: hoy o la fecha de estreno.';
+  }
+  if (mensaje.includes('LIMITE_EXCEDIDO')) {
+    return 'El lote de funciones es demasiado grande. Achicá el rango o la cantidad de horarios.';
+  }
+  if (mensaje.includes('PELICULA_INEXISTENTE')) {
+    return 'La película ya no existe. Recargá la página y volvé a intentar.';
+  }
+  if (mensaje.includes('SALA_INEXISTENTE')) {
+    return 'La sala elegida ya no existe. Recargá la página y volvé a intentar.';
+  }
+  if (
+    mensaje.includes('generar_funciones_automaticas') ||
+    mensaje.includes('crear_funciones_manuales') ||
+    mensaje.includes('does not exist')
+  ) {
+    return 'Falta correr la migración 20261114160000_funciones_programacion.sql en Supabase.';
+  }
+  if (esErrorDePermisos(mensaje)) {
+    return 'No se pudieron programar las funciones: la sesión no tiene permisos de administrador.';
+  }
+
+  return `No se pudieron programar las funciones: ${mensaje}`;
+}
+
+/** Errores de la RPC `cancelar_funcion`. */
+export function mensajeErrorCancelarFuncion(mensaje: string): string {
+  if (mensaje.includes('NO_AUTORIZADO')) {
+    return 'Solo un administrador puede cancelar funciones.';
+  }
+  if (mensaje.includes('FUNCION_INEXISTENTE')) {
+    return 'La función ya no existe. Recargá la página y volvé a intentar.';
+  }
+  if (mensaje.includes('FUNCION_YA_CANCELADA')) {
+    return 'Esa función ya estaba cancelada.';
+  }
+  if (mensaje.includes('FUNCION_EN_PASADO')) {
+    return 'La función ya comenzó: no se puede cancelar.';
+  }
+  if (
+    mensaje.includes('cancelar_funcion') ||
+    mensaje.includes('cancelada_at') ||
+    mensaje.includes('does not exist')
+  ) {
+    return 'Falta correr la migración 20261114170000_cancelar_funcion.sql en Supabase.';
+  }
+  if (esErrorDePermisos(mensaje)) {
+    return 'No se pudo cancelar la función: la sesión no tiene permisos de administrador.';
+  }
+
+  return `No se pudo cancelar la función: ${mensaje}`;
+}
+
 function esErrorDePermisos(mensaje: string): boolean {
   const texto = mensaje.toLowerCase();
   return (

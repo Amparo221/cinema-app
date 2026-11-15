@@ -1,6 +1,19 @@
+/*
+ * El que scrollea es `.contenido`, no la página: la sidebar ocupa todo el
+ * alto del layout y se queda quieta. El flex-item es `app-sidebar`, por eso
+ * el ancho y el alto se declaran en `:host`.
+ */
+:host {
+  display: block;
+  flex: 0 0 220px;
+  height: 100%;
+  min-height: 0;
+}
+
 .sidebar {
-  width: 220px;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
   background: #1c1c1c;
   color: #fff;
   padding: 1rem;
@@ -9,7 +22,7 @@
 
 .sidebar h2 {
   margin-top: 0;
-  color: #e50914;
+  color: var(--violeta-claro);
 }
 
 .sidebar ul {
@@ -31,7 +44,7 @@
 }
 
 .sidebar a.activo {
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
 }
 

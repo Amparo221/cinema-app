@@ -7,7 +7,7 @@
   background: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   margin-bottom: 1.5rem;
 }
 
@@ -32,7 +32,7 @@
   background: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 
@@ -45,7 +45,7 @@
 .saldo-card .numero {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #e50914;
+  color: var(--violeta);
   margin: 0.5rem 0;
 }
 
@@ -78,7 +78,7 @@
 
 .combo-historial {
   margin: 0.15rem 0;
-  color: #b8070f;
+  color: var(--violeta-oscuro);
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -119,8 +119,8 @@
 }
 
 .estado.cancelada {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--error-fondo);
+  color: var(--error);
 }
 
 .vacio {

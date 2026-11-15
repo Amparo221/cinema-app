@@ -1,1 +1,63 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales de CineArcos: fondo violeta claro, hoja al ras y tipografía Rubik. */
+
+:root {
+  /* Marca */
+  --violeta: #800080;
+  --violeta-oscuro: #660066;
+  --violeta-tenue: #f3e8f6;
+  --violeta-deshabilitado: #c9a6c9;
+  /* Violeta claro para texto sobre fondos oscuros (sidebar, recibo). */
+  --violeta-claro: #d9a9e0;
+
+  /* Superficies */
+  --fondo: #dad3e9;
+  --superficie: #ffffff;
+  --borde-control: #cdb9dc;
+
+  /* Errores: quedan en rojo a propósito */
+  --error: #b00020;
+  --error-fondo: #fdecea;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--fondo);
+  color: #1c1c1c;
+  font-family: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+/*
+ * Los controles de formulario propios (input, textarea, app-select) se
+ * dibujan en cada componente; acá solo se hereda la tipografía.
+ */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/*
+ * Los selects de la app usan el componente `app-select`, que se dibuja con
+ * sus propios estilos para poder animar la lista.
+ */
+

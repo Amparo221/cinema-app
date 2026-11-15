@@ -8,7 +8,7 @@
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  border: 2px dashed #e50914;
+  border: 2px dashed var(--violeta);
 }
 
 .recibo-header {
@@ -20,7 +20,7 @@
 
 .recibo-header h1 {
   margin: 0;
-  color: #e50914;
+  color: var(--violeta);
 }
 
 .codigo-compra {
@@ -57,8 +57,8 @@
 .recibo-combo {
   margin: 1.5rem 0;
   padding: 1rem;
-  background: #fff5f5;
-  border-left: 4px solid #e50914;
+  background: var(--violeta-tenue);
+  border-left: 4px solid var(--violeta);
   border-radius: 6px;
 }
 
@@ -155,7 +155,7 @@
 
 .btn-volver {
   padding: 0.75rem;
-  background: #e50914;
+  background: var(--violeta);
   color: #fff;
   text-align: center;
   text-decoration: none;

@@ -1,0 +1,341 @@
+<div class="programacion">
+  <div class="tabs" role="tablist" aria-label="Forma de programar las funciones">
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="idBase + '-tab-auto'"
+      [attr.aria-selected]="modo() === 'automatica'"
+      [attr.aria-controls]="modo() === 'automatica' ? idBase + '-panel-auto' : null"
+      [attr.tabindex]="modo() === 'automatica' ? 0 : -1"
+      (click)="cambiarModo('automatica')"
+      (keydown)="onTabKeydown($event)"
+    >
+      Automática
+    </button>
+    <button
+      type="button"
+      role="tab"
+      class="tab"
+      [id]="idBase + '-tab-manual'"
+      [attr.aria-selected]="modo() === 'manual'"
+      [attr.aria-controls]="modo() === 'manual' ? idBase + '-panel-manual' : null"
+      [attr.tabindex]="modo() === 'manual' ? 0 : -1"
+      (click)="cambiarModo('manual')"
+      (keydown)="onTabKeydown($event)"
+    >
+      Manual
+    </button>
+  </div>
+
+  @if (modo() === 'automatica') {
+    <div
+      class="panel"
+      role="tabpanel"
+      [id]="idBase + '-panel-auto'"
+      [attr.aria-labelledby]="idBase + '-tab-auto'"
+    >
+      <p class="ayuda">
+        Se generan varias funciones por día dentro del rango. Los horarios se reparten solos y la
+        sala se asigna automáticamente.
+      </p>
+
+      <div class="fila">
+        <div class="campo">
+          <label [for]="idBase + '-desde'">Desde *</label>
+          <input
+            [id]="idBase + '-desde'"
+            appFecha
+            [formControl]="formAuto.controls.desde"
+          />
+        </div>
+        <div class="campo">
+          <label [for]="idBase + '-hasta'">Hasta *</label>
+          <input
+            [id]="idBase + '-hasta'"
+            appFecha
+            [formControl]="formAuto.controls.hasta"
+          />
+        </div>
+      </div>
+      <p class="ayuda">No se puede programar antes del {{ fechaCorta(fechaMinima()) }}.</p>
+
+      <fieldset class="grupo">
+        <legend>Días de la semana *</legend>
+        <div class="opciones">
+          @for (dia of dias; track dia.valor) {
+            <label class="chip-check">
+              <input
+                type="checkbox"
+                [checked]="diasSemana().includes(dia.valor)"
+                (change)="alternarDia(dia.valor)"
+                [attr.aria-label]="dia.largo"
+              />
+              <span>{{ dia.corto }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="fila">
+        <div class="campo">
+          <label [for]="idBase + '-por-dia'">Funciones por día *</label>
+          <input
+            [id]="idBase + '-por-dia'"
+            type="number"
+            min="1"
+            max="12"
+            [formControl]="formAuto.controls.porDia"
+          />
+        </div>
+        <div class="campo">
+          <label [for]="idBase + '-inicio'">Primera función *</label>
+          <input
+            [id]="idBase + '-inicio'"
+            type="time"
+            [formControl]="formAuto.controls.horaInicio"
+          />
+        </div>
+        <div class="campo">
+          <label [for]="idBase + '-fin'">Última termina antes de *</label>
+          <input
+            [id]="idBase + '-fin'"
+            type="time"
+            [formControl]="formAuto.controls.horaFin"
+          />
+        </div>
+      </div>
+
+      <div class="fila">
+        <fieldset class="grupo">
+          <legend>Idioma *</legend>
+          <div class="opciones">
+            @for (idioma of idiomas; track idioma) {
+              <label class="chip-check">
+                <input
+                  type="checkbox"
+                  [checked]="idiomasAuto().includes(idioma)"
+                  (change)="alternarIdioma('automatica', idioma)"
+                />
+                <span>{{ etiquetaIdioma(idioma) }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo">
+          <legend>Formato *</legend>
+          <div class="opciones">
+            @for (formato of formatos; track formato) {
+              <label class="chip-check">
+                <input
+                  type="checkbox"
+                  [checked]="formatosAuto().includes(formato)"
+                  (change)="alternarFormato('automatica', formato)"
+                />
+                <span>{{ formato }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </div>
+
+      @if (errorAuto(); as error) {
+        <p class="error-campo" role="alert">{{ error }}</p>
+      } @else {
+        <p class="resumen" role="status">
+          Se van a crear <strong>{{ totalAuto() }}</strong> funciones:
+          {{ fechasAuto().length }} {{ fechasAuto().length === 1 ? 'día' : 'días' }} ×
+          {{ formAuto.controls.porDia.value }} por día ({{ diasTexto() }}).
+        </p>
+        @if (horariosAuto().length > 0) {
+          <p class="ayuda">
+            Horarios por día: {{ horariosAuto().join(' · ') }}. Tipos: {{ tiposAuto().length }}.
+          </p>
+        }
+        <p class="ayuda">Se respetan los 30 minutos de limpieza entre funciones de la misma sala.</p>
+      }
+    </div>
+  } @else {
+    <div
+      class="panel"
+      role="tabpanel"
+      [id]="idBase + '-panel-manual'"
+      [attr.aria-labelledby]="idBase + '-tab-manual'"
+    >
+      <p class="ayuda">
+        Elegí las fechas y los horarios. Cada fecha se combina con cada horario y los tipos se
+        reparten en orden.
+      </p>
+
+      <div class="fila">
+        <div class="campo">
+          <label [for]="idBase + '-fecha-manual'">Agregar fecha</label>
+          <div class="fila-agregar">
+            <input
+              [id]="idBase + '-fecha-manual'"
+              appFecha
+              [formControl]="formManual.controls.fechaNueva"
+              (keydown.enter)="agregarFecha(); $event.preventDefault()"
+            />
+            <button type="button" class="btn-secundario" (click)="agregarFecha()">Agregar</button>
+          </div>
+          @if (errorFecha(); as error) {
+            <p class="error-campo" role="alert">{{ error }}</p>
+          }
+        </div>
+
+        <div class="campo">
+          <label [for]="idBase + '-hora-manual'">Agregar horario</label>
+          <div class="fila-agregar">
+            <input
+              [id]="idBase + '-hora-manual'"
+              type="time"
+              [formControl]="formManual.controls.horaNueva"
+            />
+            <button type="button" class="btn-secundario" (click)="agregarHora()">Agregar</button>
+          </div>
+          @if (errorHora(); as error) {
+            <p class="error-campo" role="alert">{{ error }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="fila">
+        <div class="grupo-chips">
+          <span class="chips-titulo">Fechas</span>
+          @if (fechas().length > 0) {
+            <ul class="chips">
+              @for (fecha of fechas(); track fecha) {
+                <li>
+                  <span>{{ fechaCorta(fecha) }}</span>
+                  <button
+                    type="button"
+                    class="chip-quitar"
+                    (click)="quitarFecha(fecha)"
+                    [attr.aria-label]="'Quitar la fecha ' + fechaCorta(fecha)"
+                  >
+                    ×
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="ayuda">Todavía no agregaste fechas.</p>
+          }
+        </div>
+
+        <div class="grupo-chips">
+          <span class="chips-titulo">Horarios</span>
+          @if (horas().length > 0) {
+            <ul class="chips">
+              @for (hora of horas(); track hora) {
+                <li>
+                  <span>{{ hora }}</span>
+                  <button
+                    type="button"
+                    class="chip-quitar"
+                    (click)="quitarHora(hora)"
+                    [attr.aria-label]="'Quitar el horario ' + hora"
+                  >
+                    ×
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="ayuda">Todavía no agregaste horarios.</p>
+          }
+        </div>
+      </div>
+
+      <div class="fila">
+        <fieldset class="grupo">
+          <legend>Idioma *</legend>
+          <div class="opciones">
+            @for (idioma of idiomas; track idioma) {
+              <label class="chip-check">
+                <input
+                  type="checkbox"
+                  [checked]="idiomasManual().includes(idioma)"
+                  (change)="alternarIdioma('manual', idioma)"
+                />
+                <span>{{ etiquetaIdioma(idioma) }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo">
+          <legend>Formato *</legend>
+          <div class="opciones">
+            @for (formato of formatos; track formato) {
+              <label class="chip-check">
+                <input
+                  type="checkbox"
+                  [checked]="formatosManual().includes(formato)"
+                  (change)="alternarFormato('manual', formato)"
+                />
+                <span>{{ formato }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+      </div>
+
+      @if (cargandoOcupadas()) {
+        <p class="ayuda" role="status">Revisando funciones existentes...</p>
+      }
+
+      @if (funcionesManuales().length > 0) {
+        <div class="tabla-scroll">
+          <table class="tabla-previa">
+            <caption>Funciones a crear ({{ funcionesManuales().length }})</caption>
+            <thead>
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Hora</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (funcion of funcionesManuales(); track claveFuncion(funcion)) {
+                <tr [class.con-conflicto]="conflictoDe(funcion)">
+                  <td>{{ fechaCorta(funcion.fecha) }}</td>
+                  <td>{{ funcion.hora }}</td>
+                  <td>{{ etiquetaTipo(funcion) }}</td>
+                  <td>
+                    @if (conflictoDe(funcion); as conflicto) {
+                      <span class="texto-conflicto">{{ conflicto }}</span>
+                    } @else {
+                      <span class="texto-ok">Sin choques</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (errorManual(); as error) {
+        <p class="error-campo" role="alert">{{ error }}</p>
+      }
+    </div>
+  }
+
+  @if (mostrarBoton()) {
+    <div class="acciones">
+      <button
+        type="button"
+        class="btn-primario"
+        (click)="onGenerar()"
+        [disabled]="!puedeGenerar()"
+        [attr.aria-busy]="guardando()"
+      >
+        {{ guardando() ? 'Generando...' : 'Generar funciones' }}
+      </button>
+    </div>
+  }
+</div>

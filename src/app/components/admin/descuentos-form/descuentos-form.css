@@ -36,7 +36,7 @@ input[type='number'] {
 
 input:focus-visible,
 button:focus-visible {
-  outline: 2px solid #c40812;
+  outline: 2px solid var(--violeta);
   outline-offset: 1px;
 }
 
@@ -66,17 +66,17 @@ input[aria-invalid='true'] {
   padding: 0.55rem 1rem;
   border: 0;
   border-radius: 6px;
-  background: #c40812;
+  background: var(--violeta);
   color: #fff;
   font: inherit;
   cursor: pointer;
 }
 
 .btn-primario:hover:not(:disabled) {
-  background: #a0060e;
+  background: var(--violeta-oscuro);
 }
 
 .btn-primario:disabled {
-  background: #d9a3a6;
+  background: var(--violeta-deshabilitado);
   cursor: not-allowed;
 }

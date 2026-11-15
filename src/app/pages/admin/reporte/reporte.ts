@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { GraficoBarras } from '../../../components/grafico-barras/grafico-barras';
 import {
   Agrupacion,
@@ -11,6 +12,8 @@ import {
 } from '../../../models/reporte.model';
 import { ReportesService } from '../../../services/reportes';
 import { formatearMoneda, formatearNumero } from '../../../shared/numeros';
+import { FechaInput } from '../../../shared/fecha-input';
+import { OpcionSelect, Select } from '../../../shared/select/select';
 import {
   completarDias,
   errorDeRango,
@@ -41,7 +44,7 @@ import { descargarReportePdf } from './reporte-pdf';
  */
 @Component({
   selector: 'app-admin-reporte',
-  imports: [GraficoBarras],
+  imports: [GraficoBarras, FormsModule, FechaInput, Select],
   templateUrl: './reporte.html',
   styleUrl: './reporte.css',
 })
@@ -53,6 +56,10 @@ export class AdminReporte implements OnInit {
   readonly desde = signal(this.rangoInicial.desde);
   readonly hasta = signal(this.rangoInicial.hasta);
   readonly agrupacion = signal<Agrupacion>('semana');
+  readonly opcionesAgrupacion: readonly OpcionSelect[] = [
+    { valor: 'semana', etiqueta: 'Semana' },
+    { valor: 'mes', etiqueta: 'Mes' },
+  ];
 
   readonly cargando = signal(true);
   readonly exportando = signal<'pdf' | 'excel' | null>(null);
@@ -86,18 +93,19 @@ export class AdminReporte implements OnInit {
     void this.cargar();
   }
 
-  cambiarDesde(evento: Event): void {
-    this.desde.set(this.valorDe(evento));
+  /** Las fechas llegan en ISO desde el input enmascarado. */
+  cambiarDesde(iso: string): void {
+    this.desde.set(iso);
     void this.cargar();
   }
 
-  cambiarHasta(evento: Event): void {
-    this.hasta.set(this.valorDe(evento));
+  cambiarHasta(iso: string): void {
+    this.hasta.set(iso);
     void this.cargar();
   }
 
-  cambiarAgrupacion(evento: Event): void {
-    const agrupacion: Agrupacion = this.valorDe(evento) === 'mes' ? 'mes' : 'semana';
+  cambiarAgrupacion(valor: string | number | null): void {
+    const agrupacion: Agrupacion = valor === 'mes' ? 'mes' : 'semana';
     if (agrupacion === this.agrupacion()) return;
     this.agrupacion.set(agrupacion);
     void this.cargar();
@@ -152,11 +160,6 @@ export class AdminReporte implements OnInit {
     this.desde.set(rango.desde);
     this.hasta.set(rango.hasta);
     void this.cargar();
-  }
-
-  private valorDe(evento: Event): string {
-    const objetivo = evento.target as HTMLInputElement | HTMLSelectElement | null;
-    return objetivo?.value ?? '';
   }
 
   private async cargar(): Promise<void> {
