@@ -1,3 +1,5 @@
+import { Rol } from './rol.model';
+
 export interface Profile {
   id: string;
   email: string;
@@ -10,7 +12,8 @@ export interface Profile {
   puntos: number;
   creditos: number;
   primera_compra: boolean;
-  role: 'registrado' | 'admin' | 'empleado';
+  /** Nombre del rol (`public.roles.nombre`); puede ser uno propio del dueño. */
+  role: Rol;
 }
 
 export interface RegistroMetadata {

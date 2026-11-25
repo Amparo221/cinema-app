@@ -63,6 +63,28 @@
   margin-bottom: 1.25rem;
 }
 
+.aviso-propuesta {
+  border-left: 4px solid var(--violeta);
+}
+
+.acciones-propuesta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.aviso-propuesta h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.05rem;
+}
+
+.aviso-propuesta p {
+  margin: 0 0 0.75rem 0;
+  color: #444;
+}
+
 .form-titulo {
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
@@ -272,7 +294,6 @@ tbody tr.en-edicion {
   color: var(--violeta-oscuro);
 }
 
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -439,3 +460,10 @@ tbody tr.fila-reponer:hover {
   }
 }
 
+.aviso-coincidencia {
+  border-left: 3px solid var(--naranja, #d97706);
+  padding: 0.5rem 0.75rem;
+  background: #fff7ed;
+  color: #8a4b00;
+  border-radius: 4px;
+}

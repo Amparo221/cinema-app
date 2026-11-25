@@ -1,0 +1,229 @@
+<div class="admin-roles">
+  <header class="encabezado">
+    <h1>Administrar roles</h1>
+    <p>
+      Creá roles con las secciones que necesite cada persona del equipo y asignáselos a los
+      usuarios. <em>dueño</em> y <em>registrado</em> son de solo lectura; <em>empleado</em> y
+      <em>admin</em> se pueden ajustar (el nombre nunca cambia).
+    </p>
+  </header>
+
+  @if (error()) {
+    <p class="alerta error" role="alert">{{ error() }}</p>
+  }
+  @if (mensaje()) {
+    <p class="alerta exito" role="status">{{ mensaje() }}</p>
+  }
+
+  <section class="seccion" aria-labelledby="titulo-roles">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-roles">Roles</h2>
+        <p class="subtitulo">{{ roles().length }} en total</p>
+      </div>
+      <button
+        type="button"
+        class="btn-primario"
+        (click)="abrirFormNuevo()"
+        [disabled]="mostrarForm()"
+        aria-controls="form-rol"
+        [attr.aria-expanded]="mostrarForm()"
+      >
+        Crear rol
+      </button>
+    </div>
+
+    @if (mostrarForm()) {
+      <div class="form-contenedor" id="form-rol">
+        <h3 class="form-titulo">{{ rolEnEdicion() ? 'Editar rol' : 'Nuevo rol' }}</h3>
+        <app-rol-form
+          [datosIniciales]="rolEnEdicion()"
+          [guardando]="guardando()"
+          [error]="errorForm()"
+          (guardar)="guardarRol($event)"
+          (cancelar)="cerrarForm()"
+        />
+      </div>
+    }
+
+    @if (cargando()) {
+      <p class="estado" role="status">Cargando roles...</p>
+    } @else {
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">Roles y secciones habilitadas</caption>
+          <thead>
+            <tr>
+              <th scope="col">Rol</th>
+              <th scope="col">Secciones</th>
+              <th scope="col">Usuarios</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rol of roles(); track rol.nombre) {
+              <tr [class.en-edicion]="rolEnEdicion()?.nombre === rol.nombre">
+                <td>
+                  <span class="rol-etiqueta">{{ rol.etiqueta }}</span>
+                  <span class="rol-nombre">{{ rol.nombre }}</span>
+                  @if (rol.es_sistema) {
+                    <span class="badge sistema">Sistema</span>
+                  }
+                </td>
+                <td>
+                  @if (rol.secciones.length === 0) {
+                    <span class="sin-secciones">Sin acceso al panel</span>
+                  } @else {
+                    @for (seccion of rol.secciones; track seccion) {
+                      <span class="chip">{{ etiquetaSeccion(seccion) }}</span>
+                    }
+                  }
+                </td>
+                <td>{{ rol.usuarios }}</td>
+                <td class="acciones-celda">
+                  @if (eliminando() === rol.nombre) {
+                    <span class="confirmar">¿Eliminar «{{ rol.etiqueta }}»?</span>
+                    <button
+                      type="button"
+                      class="btn-peligro"
+                      [disabled]="borrando() === rol.nombre"
+                      (click)="eliminarRol(rol)"
+                    >
+                      {{ borrando() === rol.nombre ? 'Eliminando...' : 'Sí, eliminar' }}
+                    </button>
+                    <button type="button" (click)="cancelarEliminar()">Cancelar</button>
+                  } @else {
+                    @if (puedeEditar(rol)) {
+                      <button type="button" class="btn-editar" (click)="editarRol(rol)">
+                        Editar
+                      </button>
+                    } @else {
+                      <span class="solo-lectura">Solo lectura</span>
+                    }
+
+                    @if (puedeEliminar(rol)) {
+                      <button type="button" class="btn-peligro" (click)="pedirEliminar(rol.nombre)">
+                        Eliminar
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-usuarios">
+    <div class="seccion-header">
+      <div>
+        <h2 id="titulo-usuarios">Usuarios</h2>
+        <p class="subtitulo">
+          {{ totalUsuarios() }} {{ totalUsuarios() === 1 ? 'usuario' : 'usuarios' }}
+        </p>
+      </div>
+    </div>
+
+    <p class="aviso">
+      No podés cambiar tu propio rol: si necesitás hacerlo, que lo haga otro dueño.
+    </p>
+
+    <form class="buscador" (submit)="buscarUsuarios($event)">
+      <div class="campo">
+        <label for="usuarios-texto">Buscar usuario</label>
+        <input
+          id="usuarios-texto"
+          type="search"
+          [value]="textoUsuarios()"
+          placeholder="Nombre, apellido o email"
+          (input)="cambiarTextoUsuarios($event)"
+        />
+      </div>
+      <div class="campo-botones">
+        <button type="submit">Buscar</button>
+        <button type="button" (click)="limpiarBusqueda()" [disabled]="textoUsuarios() === ''">
+          Limpiar
+        </button>
+      </div>
+    </form>
+
+    @if (errorUsuarios()) {
+      <p class="alerta error" role="alert">{{ errorUsuarios() }}</p>
+    }
+
+    @if (cargandoUsuarios()) {
+      <p class="estado" role="status">Cargando usuarios...</p>
+    } @else if (vacioUsuarios()) {
+      <p class="estado">No hay usuarios con esa búsqueda.</p>
+    } @else {
+      <div class="tabla-scroll">
+        <table>
+          <caption class="sr-only">Usuarios y su rol actual</caption>
+          <thead>
+            <tr>
+              <th scope="col">Usuario</th>
+              <th scope="col">Email</th>
+              <th scope="col">Rol actual</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (usuario of usuarios(); track usuario.id) {
+              <tr>
+                <td>{{ nombreCompleto(usuario) }}</td>
+                <td class="email">{{ usuario.email }}</td>
+                <td><span class="chip">{{ usuario.rol_etiqueta }}</span></td>
+                <td class="acciones-celda">
+                  @if (!puedeCambiar(usuario)) {
+                    <span class="solo-lectura">Tu usuario</span>
+                  } @else if (cambiandoId() === usuario.id) {
+                    <div class="asignacion">
+                      <app-select
+                        [idControl]="'rol-usuario-' + usuario.id"
+                        [opciones]="opcionesRoles()"
+                        [valor]="rolElegido()"
+                        (valorChange)="cambiarRolElegido($event)"
+                        etiquetaAria="Nuevo rol"
+                      />
+                      <button
+                        type="button"
+                        class="btn-primario"
+                        [disabled]="asignando() === usuario.id || rolElegido() === ''"
+                        (click)="asignar(usuario)"
+                      >
+                        {{ asignando() === usuario.id ? 'Guardando...' : 'Guardar' }}
+                      </button>
+                      <button type="button" (click)="cancelarCambio()">Cancelar</button>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn-editar" (click)="abrirCambio(usuario)">
+                      Cambiar rol
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="paginacion" aria-label="Paginación de usuarios">
+        <button type="button" (click)="irAnteriorUsuarios()" [disabled]="paginaUsuarios() <= 1">
+          Anterior
+        </button>
+        <span aria-live="polite">
+          Página {{ paginaUsuarios() }} de {{ totalPaginasUsuarios() }}
+        </span>
+        <button
+          type="button"
+          (click)="irSiguienteUsuarios()"
+          [disabled]="paginaUsuarios() >= totalPaginasUsuarios()"
+        >
+          Siguiente
+        </button>
+      </nav>
+    }
+  </section>
+</div>

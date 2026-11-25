@@ -3,6 +3,14 @@ import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../services/supabase';
 import { SessionService } from '../../services/session';
 import { Resena } from '../../models/resena.model';
+import {
+  POR_PAGINA,
+  desplazamientoPagina,
+  hayPaginaSiguiente,
+  paginaValida,
+  resumenPagina,
+  totalPaginas,
+} from '../../shared/paginacion';
 
 interface PeliculaComprada {
   id: number;
@@ -35,6 +43,20 @@ export class MisPeliculas implements OnInit {
   resenas = signal<Resena[]>([]);
   compras = signal<CompraConPelicula[]>([]);
   cargando = signal(true);
+  cargandoResenas = signal(false);
+  errorResenas = signal<string | null>(null);
+
+  /** Paginación de “Mis reseñas”: se piden 5 por página al servidor. */
+  totalResenas = signal(0);
+  paginaResenas = signal(1);
+  readonly paginasResenas = computed(() => totalPaginas(this.totalResenas()));
+  readonly puedeIrAnterior = computed(() => this.paginaResenas() > 1);
+  readonly puedeIrSiguiente = computed(() =>
+    hayPaginaSiguiente(this.paginaResenas(), this.totalResenas()),
+  );
+  readonly resumenResenas = computed(() =>
+    resumenPagina(this.paginaResenas(), this.totalResenas()),
+  );
 
   peliculasCompradas = computed<PeliculaComprada[]>(() => {
     const vistas = new Map<number, PeliculaComprada>();
@@ -62,13 +84,57 @@ export class MisPeliculas implements OnInit {
 
   async cargarDatos(usuarioId: string) {
     this.cargando.set(true);
+
     const [resenasRes, comprasRes] = await Promise.all([
-      this.supabase.getResenasDeUsuario(usuarioId),
+      this.supabase.getResenasDeUsuario(
+        usuarioId,
+        POR_PAGINA,
+        desplazamientoPagina(this.paginaResenas()),
+      ),
       this.supabase.getPeliculasCompradasDeUsuario(usuarioId),
     ]);
-    if (resenasRes.data) this.resenas.set(resenasRes.data as unknown as Resena[]);
+
+    if (resenasRes.error) {
+      this.errorResenas.set('No se pudieron cargar tus reseñas.');
+    } else {
+      this.resenas.set((resenasRes.data ?? []) as unknown as Resena[]);
+      this.totalResenas.set(resenasRes.count ?? this.resenas().length);
+    }
+
     if (comprasRes.data) this.compras.set(comprasRes.data as unknown as CompraConPelicula[]);
+
     this.cargando.set(false);
+  }
+
+  /** Cambia la página de “Mis reseñas” pidiendo solo esas filas. */
+  async irAPaginaResenas(pagina: number) {
+    const usuarioId = this.usuario()?.id;
+    if (!usuarioId || this.cargandoResenas()) return;
+
+    const destino = paginaValida(pagina, this.totalResenas());
+    if (destino === this.paginaResenas()) return;
+
+    const anterior = this.paginaResenas();
+    this.paginaResenas.set(destino);
+    this.cargandoResenas.set(true);
+    this.errorResenas.set(null);
+
+    const { data, error, count } = await this.supabase.getResenasDeUsuario(
+      usuarioId,
+      POR_PAGINA,
+      desplazamientoPagina(destino),
+    );
+
+    this.cargandoResenas.set(false);
+
+    if (error) {
+      this.paginaResenas.set(anterior);
+      this.errorResenas.set('No se pudo cambiar de página. Intentá nuevamente.');
+      return;
+    }
+
+    this.resenas.set((data ?? []) as unknown as Resena[]);
+    this.totalResenas.set(count ?? this.resenas().length);
   }
 
   getImagenUrl(nombreArchivo: string | null): string {

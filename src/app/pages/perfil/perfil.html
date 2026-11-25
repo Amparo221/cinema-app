@@ -5,6 +5,10 @@
   <div class="perfil-container">
     <h1>Mi perfil</h1>
 
+    @if (error()) {
+      <p class="error-carga" role="alert">{{ error() }}</p>
+    }
+
     <section class="seccion">
       <h2>Datos personales</h2>
       <div class="datos-grid">
@@ -40,7 +44,7 @@
             <li>
               <span>
                 @if (c.combo_id) {
-                  Combo {{ c.combos?.nombre ?? ('#' + c.combo_id) }}
+                  Combo {{ c.combos?.nombre ?? '#' + c.combo_id }}
                 } @else {
                   Recompensa #{{ c.recompensa_id }}
                 }
@@ -50,11 +54,42 @@
             </li>
           }
         </ul>
+
+        @if (paginasCanjes() > 1) {
+          <nav class="paginacion" aria-label="Páginas del historial de canjes">
+            <button
+              type="button"
+              [disabled]="!puedeIrAnterior() || cargandoCanjes()"
+              (click)="irAPaginaCanjes(paginaCanjes() - 1)"
+            >
+              Anterior
+            </button>
+            <span class="paginacion-estado" aria-live="polite">
+              @if (cargandoCanjes()) {
+                Cargando...
+              } @else {
+                Página {{ paginaCanjes() }} de {{ paginasCanjes() }} · {{ resumenCanjes() }}
+              }
+            </span>
+            <button
+              type="button"
+              [disabled]="!puedeIrSiguiente() || cargandoCanjes()"
+              (click)="irAPaginaCanjes(paginaCanjes() + 1)"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
       }
     </section>
 
     <section class="seccion">
       <h2>Historial de compras</h2>
+
+      @if (errorCancelacion()) {
+        <p class="error-carga" role="alert">{{ errorCancelacion() }}</p>
+      }
+
       @if (compras().length === 0) {
         <p class="vacio">Todavía no hiciste ninguna compra.</p>
       } @else {
@@ -74,11 +109,34 @@
                 }
                 <p class="fecha">{{ formatearFecha(c.created_at) }}</p>
               </div>
+
               <div class="compra-derecha">
                 <span class="total">${{ c.total }}</span>
                 <span class="estado" [class.cancelada]="c.estado === 'cancelada'">
                   {{ c.estado }}
                 </span>
+
+                @if (c.estado === 'valida') {
+                  @if (avisoNoCancelable(c); as aviso) {
+                    <span class="no-cancelable">{{ aviso }}</span>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-cancelar-compra"
+                      [disabled]="cancelandoCompra() === c.id"
+                      [attr.aria-label]="
+                        'Cancelar la compra de ' +
+                        (c.funciones?.peliculas?.nombre ?? 'esta función')
+                      "
+                      (click)="cancelarCompra(c)"
+                    >
+                      {{ cancelandoCompra() === c.id ? 'Cancelando...' : 'Cancelar compra' }}
+                    </button>
+                    <span class="credito-devolucion">
+                      Se devuelven ${{ creditosDevolucion(c) }} en créditos
+                    </span>
+                  }
+                }
               </div>
             </li>
           }

@@ -41,6 +41,8 @@ const ENTIDADES: Record<string, string> = {
   configuracion: 'Configuración',
   escaneos_qr: 'Validación de QR',
   compras: 'Compra',
+  propuestas: 'Propuesta de película',
+  profiles: 'Usuario',
 };
 
 export type ClaseAccion = 'alta' | 'edicion' | 'baja' | 'validacion' | 'cancelacion';

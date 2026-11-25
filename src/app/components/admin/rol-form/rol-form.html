@@ -1,0 +1,94 @@
+<form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <p class="ayuda">
+    El nombre es la clave del rol y no se puede cambiar después. Las secciones marcan a qué
+    pantallas del panel puede entrar quien tenga el rol.
+  </p>
+
+  @if (datosIniciales()?.es_sistema) {
+    <p class="aviso-sistema" role="note">
+      Rol del sistema «{{ datosIniciales()?.nombre }}»: podés cambiar la etiqueta y las secciones.
+      El nombre y el borrado quedan bloqueados.
+    </p>
+  }
+
+  @if (error()) {
+    <p class="alerta error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="fila">
+    <div class="campo">
+      <label for="rol-nombre">Nombre *</label>
+      <input
+        id="rol-nombre"
+        type="text"
+        formControlName="nombre"
+        autocomplete="off"
+        placeholder="encargado_sala"
+        [attr.readonly]="esEdicion() ? '' : null"
+        [attr.aria-invalid]="errores().nombre ? 'true' : null"
+        [attr.aria-describedby]="errores().nombre ? 'rol-nombre-error' : 'rol-nombre-ayuda'"
+        (input)="limpiarError('nombre')"
+      />
+      @if (errores().nombre) {
+        <p class="error-campo" id="rol-nombre-error" role="alert">{{ errores().nombre }}</p>
+      } @else if (esEdicion()) {
+        <p class="ayuda-campo" id="rol-nombre-ayuda">El nombre no se edita.</p>
+      } @else {
+        <p class="ayuda-campo" id="rol-nombre-ayuda">
+          Minúsculas, números y guión bajo. Ejemplo: encargado_sala.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="rol-etiqueta">Etiqueta *</label>
+      <input
+        id="rol-etiqueta"
+        type="text"
+        formControlName="etiqueta"
+        autocomplete="off"
+        maxlength="40"
+        placeholder="Encargado de sala"
+        [attr.aria-invalid]="errores().etiqueta ? 'true' : null"
+        [attr.aria-describedby]="errores().etiqueta ? 'rol-etiqueta-error' : null"
+        (input)="limpiarError('etiqueta')"
+      />
+      @if (errores().etiqueta) {
+        <p class="error-campo" id="rol-etiqueta-error" role="alert">{{ errores().etiqueta }}</p>
+      } @else {
+        <p class="ayuda-campo">Es el nombre que se ve en la app.</p>
+      }
+    </div>
+  </div>
+
+  <fieldset class="secciones">
+    <legend>Secciones *</legend>
+
+    @for (seccion of secciones; track seccion) {
+      <label class="opcion">
+        <input
+          type="checkbox"
+          [checked]="estaSeleccionada(seccion)"
+          (change)="alternarSeccion(seccion)"
+        />
+        <span>{{ etiquetaSeccion(seccion) }}</span>
+      </label>
+    }
+
+    @if (errores().secciones) {
+      <p class="error-campo" role="alert">{{ errores().secciones }}</p>
+    }
+  </fieldset>
+
+  <div class="acciones">
+    <button type="button" class="btn-secundario" (click)="cancelar.emit()">Cancelar</button>
+    <button
+      type="submit"
+      class="btn-primario"
+      [disabled]="guardando()"
+      [attr.aria-busy]="guardando()"
+    >
+      {{ guardando() ? 'Guardando...' : esEdicion() ? 'Guardar cambios' : 'Crear rol' }}
+    </button>
+  </div>
+</form>

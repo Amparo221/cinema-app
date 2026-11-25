@@ -1,11 +1,14 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SupabaseService } from '../../../services/supabase';
 import { SessionService } from '../../../services/session';
 import { Pelicula } from '../../../models/pelicula.model';
 import {
-  CategoriaCandy,
-  ProductoCandy,
-} from '../../../models/producto-candy.model';
+  Propuesta,
+  datosPeliculaDesdePropuesta,
+  mensajeErrorPropuesta,
+} from '../../../models/propuesta.model';
+import { CategoriaCandy, ProductoCandy } from '../../../models/producto-candy.model';
 import { Combo } from '../../../models/combo.model';
 import {
   DatosCombo,
@@ -15,11 +18,7 @@ import {
   SalidaProductoCandy,
 } from '../../../models/admin.model';
 import { Descuentos, descuentosDeConfiguracion } from '../../../models/descuento.model';
-import {
-  esProximamente,
-  estaEnPreventa,
-  fechaHoy,
-} from '../../../models/preventa.model';
+import { esProximamente, estaEnPreventa, fechaHoy } from '../../../models/preventa.model';
 import { Funcion } from '../../../models/funcion.model';
 import {
   ResultadoCancelacionFuncion,
@@ -36,6 +35,7 @@ import { ProductoCandyForm } from '../../../components/admin/producto-candy-form
 import { ComboForm } from '../../../components/admin/combo-form/combo-form';
 import { DescuentosForm } from '../../../components/admin/descuentos-form/descuentos-form';
 import { ProgramacionFunciones } from '../../../components/admin/programacion-funciones/programacion-funciones';
+import { ListaEsperaPanel } from '../../../components/admin/lista-espera-panel/lista-espera-panel';
 import { RecortarTexto } from '../../../shared/recortar-texto';
 import {
   mensajeErrorCancelarFuncion,
@@ -56,15 +56,46 @@ const ETIQUETAS_CATEGORIA: Record<CategoriaCandy, string> = {
   combos: 'Combos',
 };
 
+/**
+ * Normaliza un título para compararlo con el catálogo: sin acentos, sin
+ * comillas tipográficas y con los espacios colapsados.
+ */
+function normalizarTitulo(titulo: string): string {
+  return titulo
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[«»"']/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+/** Datos mínimos para reintentar el cierre de una propuesta ya aceptada. */
+interface PropuestaSinCerrar {
+  id: number;
+  titulo: string;
+  peliculaId: number;
+}
+
 @Component({
   selector: 'app-admin-general',
-  imports: [PeliculaForm, ProductoCandyForm, ComboForm, DescuentosForm, ProgramacionFunciones, RecortarTexto],
+  imports: [
+    PeliculaForm,
+    ProductoCandyForm,
+    ComboForm,
+    DescuentosForm,
+    ProgramacionFunciones,
+    ListaEsperaPanel,
+    RecortarTexto,
+  ],
   templateUrl: './general.html',
   styleUrl: './general.css',
 })
 export class AdminGeneral implements OnInit {
   private supabase = inject(SupabaseService);
   private session = inject(SessionService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   private formatoMoneda = new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -106,6 +137,24 @@ export class AdminGeneral implements OnInit {
   /** Película que se está editando; null cuando el formulario crea una nueva. */
   peliculaEnEdicion = signal<Pelicula | null>(null);
 
+  /**
+   * Propuesta de película que se está aceptando (llega por `?propuesta=`).
+   * Se marca como aceptada recién cuando la película se guarda.
+   */
+  propuestaOrigen = signal<Propuesta | null>(null);
+  resolviendoPropuesta = signal(false);
+
+  /**
+   * Propuesta cuya película ya se creó pero que no se pudo marcar como
+   * aceptada. Guarda lo mínimo para reintentar sin crear otra película.
+   */
+  propuestaSinCerrar = signal<PropuestaSinCerrar | null>(null);
+
+  /**
+   * Película del catálogo que ya se llama igual que la propuesta abierta.
+   * Si existe, aceptar la propuesta no puede crear otra: el título es único.
+   */
+  peliculaCoincidente = signal<Pelicula | null>(null);
   /** Película cuyo panel “Reponer funciones” está abierto. */
   peliculaReponiendo = signal<Pelicula | null>(null);
   funcionesExistentes = signal<Funcion[]>([]);
@@ -127,18 +176,22 @@ export class AdminGeneral implements OnInit {
   /** Datos con los que se precarga el formulario al editar. */
   readonly datosInicialesPelicula = computed<DatosPelicula | null>(() => {
     const pelicula = this.peliculaEnEdicion();
-    if (!pelicula) return null;
+    if (pelicula) {
+      return {
+        nombre: pelicula.nombre,
+        sinopsis: pelicula.sinopsis,
+        duracion: pelicula.duracion,
+        generos: pelicula.generos,
+        restriccion_edad: pelicula.restriccion_edad,
+        precio_preventa: pelicula.precio_preventa,
+        fecha_estreno: pelicula.fecha_estreno,
+        proximamente: pelicula.proximamente,
+      };
+    }
 
-    return {
-      nombre: pelicula.nombre,
-      sinopsis: pelicula.sinopsis,
-      duracion: pelicula.duracion,
-      generos: pelicula.generos,
-      restriccion_edad: pelicula.restriccion_edad,
-      precio_preventa: pelicula.precio_preventa,
-      fecha_estreno: pelicula.fecha_estreno,
-      proximamente: pelicula.proximamente,
-    };
+    // Al aceptar una propuesta el alta arranca con lo que pidió el cliente.
+    const propuesta = this.propuestaOrigen();
+    return propuesta ? datosPeliculaDesdePropuesta(propuesta) : null;
   });
 
   /** Póster actual, para la vista previa del formulario de edición. */
@@ -165,14 +218,14 @@ export class AdminGeneral implements OnInit {
 
   /** Porcentajes de descuento vigentes, con los valores por defecto. */
   readonly descuentosVigentes = computed<Descuentos>(() =>
-    descuentosDeConfiguracion(this.configuracion())
+    descuentosDeConfiguracion(this.configuracion()),
   );
 
   readonly peliculasVisibles = computed(() =>
-    recortar(this.peliculas(), this.peliculasExpandidas())
+    recortar(this.peliculas(), this.peliculasExpandidas()),
   );
   readonly productosVisibles = computed(() =>
-    recortar(this.productos(), this.productosExpandidos())
+    recortar(this.productos(), this.productosExpandidos()),
   );
   readonly combosVisibles = computed(() => recortar(this.combos(), this.combosExpandidos()));
 
@@ -189,6 +242,7 @@ export class AdminGeneral implements OnInit {
       return;
     }
     await this.cargarDatos();
+    await this.cargarPropuestaDeQuery();
   }
 
   async cargarDatos() {
@@ -238,6 +292,16 @@ export class AdminGeneral implements OnInit {
     this.mostrarFormPelicula.set(true);
   }
 
+  /**
+   * Deja de precargar el alta con la propuesta. La propuesta sigue
+   * pendiente y se puede retomar desde /admin/propuestas.
+   */
+  async descartarPropuesta() {
+    this.propuestaOrigen.set(null);
+    this.cerrarFormPelicula();
+    await this.limpiarQueryPropuesta();
+  }
+
   editarPelicula(pelicula: Pelicula) {
     this.error.set(null);
     this.mensaje.set(null);
@@ -250,6 +314,7 @@ export class AdminGeneral implements OnInit {
   cerrarFormPelicula() {
     this.mostrarFormPelicula.set(false);
     this.peliculaEnEdicion.set(null);
+    this.peliculaCoincidente.set(null);
   }
 
   abrirFormCandy() {
@@ -283,15 +348,172 @@ export class AdminGeneral implements OnInit {
   }
 
   alternarPeliculas() {
-    this.peliculasExpandidas.update(expandido => !expandido);
+    this.peliculasExpandidas.update((expandido) => !expandido);
   }
 
   alternarProductos() {
-    this.productosExpandidos.update(expandido => !expandido);
+    this.productosExpandidos.update((expandido) => !expandido);
   }
 
   alternarCombos() {
-    this.combosExpandidos.update(expandido => !expandido);
+    this.combosExpandidos.update((expandido) => !expandido);
+  }
+
+  /** Si se llegó desde /admin/propuestas, precarga el alta con esa propuesta. */
+  private async cargarPropuestaDeQuery() {
+    const id = Number(this.route.snapshot.queryParamMap.get('propuesta'));
+    if (!Number.isInteger(id) || id <= 0) return;
+
+    const { data, error } = await this.supabase.getPropuesta(id);
+
+    if (error || !data) {
+      this.error.set('No se pudo cargar la propuesta seleccionada.');
+      return;
+    }
+
+    const propuesta = data as Propuesta;
+
+    if (propuesta.estado !== 'pendiente') {
+      this.error.set('Esa propuesta ya fue resuelta.');
+      await this.limpiarQueryPropuesta();
+      return;
+    }
+
+    this.propuestaOrigen.set(propuesta);
+    this.peliculaCoincidente.set(this.buscarPeliculaCoincidente(propuesta.titulo));
+    this.abrirFormPelicula();
+  }
+
+  /** Marca la propuesta como aceptada, ya con la película creada. */
+  private async cerrarPropuestaAceptada(pelicula: Pelicula) {
+    const propuesta = this.propuestaOrigen();
+    if (!propuesta) return;
+
+    this.resolviendoPropuesta.set(true);
+
+    const { error } = await this.supabase.resolverPropuesta(
+      propuesta.id,
+      'aceptada',
+      null,
+      pelicula.id,
+    );
+
+    this.resolviendoPropuesta.set(false);
+
+    if (error) {
+      // La película ya existe: se cierra el formulario (para no crearla dos
+      // veces) y se ofrece reintentar solo el cierre de la propuesta.
+      this.propuestaOrigen.set(null);
+      this.cerrarFormPelicula();
+      this.propuestaSinCerrar.set({
+        id: propuesta.id,
+        titulo: propuesta.titulo,
+        peliculaId: pelicula.id,
+      });
+      this.error.set(
+        `La película «${pelicula.nombre}» se creó, pero la propuesta «${propuesta.titulo}» no se pudo cerrar: ${mensajeErrorPropuesta(error.message)}`,
+      );
+      await this.limpiarQueryPropuesta();
+      return;
+    }
+
+    this.propuestaOrigen.set(null);
+    this.peliculaCoincidente.set(null);
+    this.propuestaSinCerrar.set(null);
+    this.mensaje.set(
+      `Película creada y propuesta de «${propuesta.titulo}» aceptada. El cliente ya tiene el aviso.`,
+    );
+    await this.limpiarQueryPropuesta();
+  }
+
+  /** Película del catálogo con el mismo título normalizado, si existe. */
+  private buscarPeliculaCoincidente(titulo: string): Pelicula | null {
+    const buscado = normalizarTitulo(titulo);
+    return this.peliculas().find((p) => normalizarTitulo(p.nombre) === buscado) ?? null;
+  }
+
+  /**
+   * Cierra la propuesta usando una película que ya está en el catálogo.
+   * Destraba el caso en que la película se creó pero la propuesta quedó
+   * pendiente, sin duplicar el alta ni perder el aviso al cliente.
+   */
+  async cerrarPropuestaConExistente() {
+    const propuesta = this.propuestaOrigen();
+    const pelicula = this.peliculaCoincidente();
+    if (!propuesta || !pelicula || this.resolviendoPropuesta()) return;
+
+    this.resolviendoPropuesta.set(true);
+    this.error.set(null);
+    this.mensaje.set(null);
+
+    const { error } = await this.supabase.resolverPropuesta(
+      propuesta.id,
+      'aceptada',
+      null,
+      pelicula.id,
+    );
+
+    this.resolviendoPropuesta.set(false);
+
+    if (error) {
+      this.error.set(
+        `No se pudo aceptar la propuesta «${propuesta.titulo}»: ${mensajeErrorPropuesta(error.message)}`,
+      );
+      return;
+    }
+
+    this.propuestaOrigen.set(null);
+    this.peliculaCoincidente.set(null);
+    this.propuestaSinCerrar.set(null);
+    this.cerrarFormPelicula();
+    this.mensaje.set(
+      `Propuesta de «${propuesta.titulo}» aceptada con la película «${pelicula.nombre}». El cliente ya tiene el aviso.`,
+    );
+    await this.limpiarQueryPropuesta();
+  }
+
+  /**
+   * Reintenta el cierre de una propuesta cuya película ya se creó.
+   * No vuelve a tocar el catálogo: solo marca la propuesta y avisa al cliente.
+   */
+  async reintentarAceptacionPropuesta() {
+    const pendiente = this.propuestaSinCerrar();
+    if (!pendiente || this.resolviendoPropuesta()) return;
+
+    this.resolviendoPropuesta.set(true);
+    this.error.set(null);
+    this.mensaje.set(null);
+
+    const { error } = await this.supabase.resolverPropuesta(
+      pendiente.id,
+      'aceptada',
+      null,
+      pendiente.peliculaId,
+    );
+
+    this.resolviendoPropuesta.set(false);
+
+    if (error) {
+      this.error.set(
+        `Todavía no se pudo cerrar la propuesta «${pendiente.titulo}»: ${mensajeErrorPropuesta(error.message)}`,
+      );
+      return;
+    }
+
+    this.propuestaSinCerrar.set(null);
+    this.mensaje.set(`Propuesta de «${pendiente.titulo}» aceptada. El cliente ya tiene el aviso.`);
+    await this.cargarDatos();
+  }
+
+  /** Oculta el aviso. La propuesta sigue pendiente y se puede resolver después. */
+  olvidarPropuestaSinCerrar() {
+    this.propuestaSinCerrar.set(null);
+    this.error.set(null);
+  }
+
+  /** Saca `?propuesta=` de la URL para que un refresh no la vuelva a abrir. */
+  private async limpiarQueryPropuesta() {
+    await this.router.navigate(['/admin/general'], { replaceUrl: true });
   }
 
   /**
@@ -339,9 +561,14 @@ export class AdminGeneral implements OnInit {
       this.mostrarFormPelicula.set(false);
       this.peliculaEnEdicion.set(null);
       this.mensaje.set(
-        enEdicion ? 'Película actualizada correctamente.' : 'Película creada correctamente.'
+        enEdicion ? 'Película actualizada correctamente.' : 'Película creada correctamente.',
       );
       await this.cargarDatos();
+
+      // Si el alta venía de una propuesta, recién ahora se puede cerrar.
+      if (creada) {
+        await this.cerrarPropuestaAceptada(creada);
+      }
 
       // La programación elegida en el alta se genera después de crear la
       // película: la RPC necesita su id.
@@ -412,7 +639,7 @@ export class AdminGeneral implements OnInit {
       this.mostrarFormCombo.set(false);
       this.comboEnEdicion.set(null);
       this.mensaje.set(
-        enEdicion ? 'Recompensa actualizada correctamente.' : 'Recompensa creada correctamente.'
+        enEdicion ? 'Recompensa actualizada correctamente.' : 'Recompensa creada correctamente.',
       );
       await this.cargarDatos();
     } catch {
@@ -441,7 +668,7 @@ export class AdminGeneral implements OnInit {
       this.mensaje.set(
         combo.activo
           ? `"${combo.nombre}" quedó pausada: no se puede canjear.`
-          : `"${combo.nombre}" quedó activa de nuevo.`
+          : `"${combo.nombre}" quedó activa de nuevo.`,
       );
       await this.cargarDatos();
     } catch {
@@ -462,7 +689,7 @@ export class AdminGeneral implements OnInit {
     try {
       const { error } = await this.supabase.guardarDescuentos(
         descuentos.primeraCompra,
-        descuentos.cincuenta
+        descuentos.cincuenta,
       );
 
       if (error) {
@@ -550,7 +777,7 @@ export class AdminGeneral implements OnInit {
 
       if (respuesta.error) {
         this.error.set(
-          `Película creada, pero no se generaron las funciones: ${mensajeErrorFunciones(respuesta.error.message)}`
+          `Película creada, pero no se generaron las funciones: ${mensajeErrorFunciones(respuesta.error.message)}`,
         );
         return;
       }
@@ -671,7 +898,7 @@ export class AdminGeneral implements OnInit {
   /** Nombres de los dos productos incluidos, para la tabla de recompensas. */
   etiquetaProductosCombo(combo: Combo): string {
     const nombres = [combo.producto_1?.nombre, combo.producto_2?.nombre].filter(
-      (nombre): nombre is string => Boolean(nombre)
+      (nombre): nombre is string => Boolean(nombre),
     );
 
     return nombres.length > 0 ? nombres.join(' + ') : '—';

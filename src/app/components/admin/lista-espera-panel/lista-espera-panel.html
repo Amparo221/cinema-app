@@ -1,0 +1,67 @@
+<section class="lista-espera-panel" aria-labelledby="titulo-lista-espera-admin">
+  <header class="panel-encabezado">
+    <div>
+      <h2 id="titulo-lista-espera-admin">Lista de espera</h2>
+      <p class="panel-ayuda">
+        Personas anotadas en funciones agotadas. Cuando se libera una butaca se avisa
+        automáticamente a las primeras de la fila por la campanita.
+      </p>
+    </div>
+    <button type="button" class="btn-panel" [disabled]="cargando()" (click)="cargar()">
+      Actualizar
+    </button>
+  </header>
+
+  @if (cargando()) {
+    <p class="panel-estado" aria-live="polite">Cargando lista de espera...</p>
+  } @else if (error()) {
+    <p class="panel-error" role="alert">{{ error() }}</p>
+  } @else if (filas().length === 0) {
+    <p class="panel-estado">No hay nadie esperando en este momento.</p>
+  } @else {
+    <p class="panel-total">
+      {{ filas().length }} funcion(es) con espera · {{ totalEnEspera() }} persona(s) esperando
+    </p>
+
+    <div class="tabla-contenedor">
+      <table class="tabla-espera">
+        <caption class="sr-only">Funciones agotadas con lista de espera</caption>
+        <thead>
+          <tr>
+            <th scope="col">Película</th>
+            <th scope="col">Función</th>
+            <th scope="col">Sala</th>
+            <th scope="col">Esperando</th>
+            <th scope="col">Avisados</th>
+            <th scope="col"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of filas(); track fila.funcion_id) {
+            <tr>
+              <td>{{ fila.pelicula_nombre }}</td>
+              <td>{{ formatearFecha(fila.fecha) }} · {{ horaCorta(fila.hora) }}</td>
+              <td>{{ fila.sala || '—' }}</td>
+              <td>{{ fila.en_espera }}</td>
+              <td>{{ fila.notificados }}</td>
+              <td class="celda-acciones">
+                <button
+                  type="button"
+                  class="btn-panel btn-panel-chico"
+                  [disabled]="procesando() !== null"
+                  (click)="procesar(fila)"
+                >
+                  {{ procesando() === fila.funcion_id ? 'Avisando...' : 'Avisar ahora' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (aviso()) {
+    <p class="panel-ok" role="status">{{ aviso() }}</p>
+  }
+</section>

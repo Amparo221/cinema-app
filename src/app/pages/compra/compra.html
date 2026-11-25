@@ -65,6 +65,102 @@
 
     <div class="tab-contenido">
       @if (tabActual() === 'butacas') {
+        @if (funcionAgotada()) {
+          <section class="lista-espera" aria-labelledby="titulo-lista-espera">
+            <h2 id="titulo-lista-espera">Función agotada</h2>
+            <p class="lista-espera-intro">
+              No quedan butacas libres para esta función. Anotate en la lista de espera y te
+              avisamos por la campanita apenas se libere una.
+            </p>
+
+            @if (cargandoEspera()) {
+              <p class="lista-espera-estado" aria-live="polite">
+                Revisando tu lugar en la lista...
+              </p>
+            } @else if (!usuario()) {
+              <button type="button" class="btn-espera" (click)="irALogin()">
+                Iniciar sesión para anotarme
+              </button>
+              <p class="ayuda-espera">
+                Solo los usuarios registrados conservan su lugar en la fila.
+              </p>
+            } @else if (estadoEspera() === 'reclamado') {
+              <p class="lista-espera-destacado" role="status">{{ textoEspera() }}</p>
+              <button type="button" class="btn-espera btn-espera-primario" (click)="irAPagar()">
+                Ir a pagar
+              </button>
+            } @else if (puedeReclamar()) {
+              <p class="lista-espera-destacado" role="status">
+                ¡Se liberó un lugar! Te quedan {{ minutosParaReclamar() }} minutos para reclamar
+                la butaca {{ espera()?.butaca_reservada }}.
+              </p>
+              <button
+                type="button"
+                class="btn-espera btn-espera-primario"
+                [disabled]="procesandoEspera()"
+                (click)="reclamarLugar()"
+              >
+                {{ procesandoEspera() ? 'Reclamando...' : 'Reclamar mi butaca' }}
+              </button>
+            } @else if (estadoEspera() === 'notificado') {
+              <p class="lista-espera-estado">
+                Se venció el tiempo para reclamar el lugar que se había liberado.
+              </p>
+              <button
+                type="button"
+                class="btn-espera"
+                [disabled]="procesandoEspera()"
+                (click)="unirseAListaEspera()"
+              >
+                Volver a anotarme
+              </button>
+            } @else if (estadoEspera() === 'esperando') {
+              <p class="lista-espera-estado" role="status">{{ textoEspera() }}</p>
+              <button
+                type="button"
+                class="btn-espera"
+                [disabled]="procesandoEspera()"
+                (click)="salirDeListaEspera()"
+              >
+                Salir de la lista
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="btn-espera btn-espera-primario"
+                [disabled]="procesandoEspera()"
+                (click)="unirseAListaEspera()"
+              >
+                {{ procesandoEspera() ? 'Anotándome...' : 'Anotarme en la lista de espera' }}
+              </button>
+            }
+
+            @if (avisoEspera()) {
+              <p class="lista-espera-ok" role="status">{{ avisoEspera() }}</p>
+            }
+
+            @if (errorEspera()) {
+              <p class="lista-espera-error" role="alert">{{ errorEspera() }}</p>
+            }
+          </section>
+        }
+
+        <div class="acciones-prueba">
+          <button
+            type="button"
+            class="btn-prueba"
+            [disabled]="reservando() || butacasDisponibles().length === 0"
+            aria-describedby="ayuda-prueba-butacas"
+            (click)="seleccionarTodasDePrueba()"
+          >
+            Seleccionar todas las butacas (de prueba)
+          </button>
+          <p class="ayuda-prueba" id="ayuda-prueba-butacas">
+            Botón de prueba: marca de una vez todas las butacas libres, sin importar tu rol.
+            No lo uses en producción.
+          </p>
+        </div>
+
         <app-mapa-butacas
           [butacasVendidas]="butacasVendidas()"
           [butacasReservadas]="butacasReservadas()"

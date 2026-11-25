@@ -1,4 +1,9 @@
-export type TipoNotificacion = 'preventa_disponible' | 'funcion_cancelada';
+export type TipoNotificacion =
+  | 'preventa_disponible'
+  | 'funcion_cancelada'
+  | 'lista_espera_libre'
+  | 'propuesta_aceptada'
+  | 'propuesta_rechazada';
 
 /** Aviso para la campanita del usuario. */
 export interface Notificacion {

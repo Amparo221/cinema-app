@@ -62,6 +62,9 @@ export const ACCIONES_ACTIVIDAD: OpcionAccion[] = [
   { valor: 'configuracion_eliminada', etiqueta: 'Configuración eliminada' },
   { valor: 'qr_validado', etiqueta: 'QR validado' },
   { valor: 'compra_cancelada', etiqueta: 'Compra cancelada' },
+  { valor: 'propuesta_creada', etiqueta: 'Propuesta creada' },
+  { valor: 'propuesta_modificada', etiqueta: 'Propuesta resuelta' },
+  { valor: 'rol_asignado', etiqueta: 'Rol asignado' },
 ];
 
 /** Filtros de la bitácora. */

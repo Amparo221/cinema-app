@@ -2,10 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SessionService } from '../../services/session';
+import { rutaInicial } from '../../core/permisos';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -35,13 +35,8 @@ export class Login {
       return;
     }
 
-    // El empleado solo tiene acceso al escáner.
-    const destino =
-      perfil.role === 'admin'
-        ? '/admin/general'
-        : perfil.role === 'empleado'
-          ? '/escaner'
-          : '/main';
+    // El destino depende de las secciones que habilite su rol.
+    const destino = rutaInicial(this.session.secciones());
     await this.router.navigate([destino]);
   }
 }

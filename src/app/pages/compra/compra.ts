@@ -16,7 +16,15 @@ import {
   nombreCombo,
   puntosCombo,
 } from '../../models/combo.model';
-import { esButacaVip } from '../../models/butaca.model';
+import { butacasLibres as butacasSinOcupar, esButacaVip } from '../../models/butaca.model';
+import {
+  EsperaButaca,
+  esperaEnCola,
+  mensajeErrorListaEspera,
+  minutosRestantesReclamo,
+  reclamoVigente,
+  textoEstadoEspera,
+} from '../../models/lista-espera.model';
 import {
   CLAVE_DESCUENTO_CINCUENTA,
   CLAVE_DESCUENTO_PRIMERA_COMPRA,
@@ -64,6 +72,44 @@ export class Compra implements OnInit, OnDestroy {
   butacasPropias = signal<string[]>([]);
   reservando = signal(false);
   avisoButacas = signal<string | null>(null);
+
+  /** Butacas que siguen libres: alimenta el atajo “seleccionar todas”. */
+  readonly butacasDisponibles = computed(() =>
+    butacasSinOcupar(this.butacasVendidas(), this.butacasReservadas()),
+  );
+
+  // Lista de espera (solo cuando la función está agotada)
+  espera = signal<EsperaButaca | null>(null);
+  cargandoEspera = signal(false);
+  procesandoEspera = signal(false);
+  errorEspera = signal<string | null>(null);
+  avisoEspera = signal<string | null>(null);
+
+  /** `true` cuando ya se consultó la ocupación al menos una vez. */
+  private ocupacionCargada = signal(false);
+
+  /** Reloj para que la cuenta regresiva del reclamo se refresque sola. */
+  private relojEspera = signal(Date.now());
+
+  /** La función no tiene butacas libres: se ofrece la lista de espera. */
+  readonly funcionAgotada = computed(
+    () =>
+      this.ocupacionCargada() &&
+      !this.cargandoFuncion() &&
+      this.butacasDisponibles().length === 0,
+  );
+
+  readonly enListaEspera = computed(() => esperaEnCola(this.espera()));
+
+  readonly estadoEspera = computed(() => this.espera()?.estado ?? null);
+
+  readonly textoEspera = computed(() => textoEstadoEspera(this.espera()));
+
+  readonly puedeReclamar = computed(() => reclamoVigente(this.espera(), this.relojEspera()));
+
+  readonly minutosParaReclamar = computed(() =>
+    minutosRestantesReclamo(this.espera(), this.relojEspera()),
+  );
 
   // Candy
   productos = signal<ProductoCandy[]>([]);
@@ -203,11 +249,18 @@ export class Compra implements OnInit, OnDestroy {
     // Trae la foto actual y, si esta pestana ya tenia bloqueos, los restaura.
     await this.refrescarButacas(true);
 
+    // Si el usuario ya está anotado, se muestra su lugar en la cola.
+    await this.cargarEspera();
+
     // Realtime solo avisa; el estado real siempre se vuelve a consultar.
     this.desuscribirRealtime = this.reserva.suscribir(this.funcionId(), () => this.programarRefresco());
 
     // Respaldo si Realtime se cae o el navegador esta en segundo plano.
-    this.intervaloRefresco = setInterval(() => void this.refrescarButacas(), 15000);
+    this.intervaloRefresco = setInterval(() => {
+      this.relojEspera.set(Date.now());
+      void this.refrescarButacas();
+      if (this.funcionAgotada() || this.espera()) void this.cargarEspera();
+    }, 15000);
 
     // Renueva el TTL de 10 minutos mientras haya butacas seleccionadas.
     this.intervaloRenovacion = setInterval(() => {
@@ -250,6 +303,7 @@ export class Compra implements OnInit, OnDestroy {
       this.butacasVendidas.set(vendidas);
       this.butacasReservadas.set(reservadas);
       this.butacasPropias.set(propias);
+      this.ocupacionCargada.set(true);
 
       if (restaurarPropias && this.butacasSeleccionadas().length === 0 && propias.length > 0) {
         this.butacasSeleccionadas.set(propias);
@@ -478,6 +532,163 @@ export class Compra implements OnInit, OnDestroy {
 
   cambiarTab(tab: Tab) {
     this.tabActual.set(tab);
+  }
+
+  /**
+   * Atajo SOLO para pruebas: marca de una vez todas las butacas libres de la
+   * función. No mira el rol del usuario; el botón está rotulado “de prueba”.
+   * Con combo activo se limita a una butaca, porque el combo incluye una sola.
+   */
+  seleccionarTodasDePrueba() {
+    if (this.reservando()) return;
+
+    const libres = this.butacasDisponibles();
+    const seleccion = this.combo() ? libres.slice(0, 1) : libres;
+
+    if (seleccion.length === 0) {
+      this.avisoButacas.set('No quedan butacas libres en esta función.');
+      return;
+    }
+
+    this.onSeleccionCambiada(seleccion);
+
+    this.avisoButacas.set(
+      this.combo()
+        ? 'Selección de prueba: el combo incluye una butaca, se marcó la primera libre.'
+        : `Selección de prueba: ${seleccion.length} butacas libres marcadas.`,
+    );
+  }
+
+  // --- Lista de espera de funciones agotadas ---
+
+  /** Trae la fila de espera del usuario para esta función (si existe). */
+  async cargarEspera() {
+    const usuario = this.usuario();
+
+    if (!usuario || !Number.isFinite(this.funcionId())) {
+      this.espera.set(null);
+      return;
+    }
+
+    if (this.cargandoEspera()) return;
+
+    this.cargandoEspera.set(true);
+
+    try {
+      const { data, error } = await this.supabase.getMiEspera(this.funcionId(), usuario.id);
+      if (this.destruido) return;
+
+      this.espera.set(error ? null : ((data as EsperaButaca | null) ?? null));
+    } catch {
+      if (!this.destruido) this.espera.set(null);
+    } finally {
+      if (!this.destruido) this.cargandoEspera.set(false);
+    }
+  }
+
+  /** Anota al usuario en la cola de la función agotada. */
+  async unirseAListaEspera() {
+    if (this.procesandoEspera()) return;
+
+    if (!this.usuario()) {
+      this.errorEspera.set(mensajeErrorListaEspera('USUARIO_REQUERIDO'));
+      return;
+    }
+
+    this.procesandoEspera.set(true);
+    this.errorEspera.set(null);
+    this.avisoEspera.set(null);
+
+    try {
+      const { error } = await this.supabase.unirseListaEspera(this.funcionId());
+
+      if (error) {
+        this.errorEspera.set(mensajeErrorListaEspera(error.message));
+        await this.cargarEspera();
+        return;
+      }
+
+      this.avisoEspera.set(
+        'Te anotamos en la lista de espera. Te avisamos por la campanita apenas se libere una butaca.',
+      );
+      await this.cargarEspera();
+    } catch {
+      this.errorEspera.set(mensajeErrorListaEspera());
+    } finally {
+      this.procesandoEspera.set(false);
+    }
+  }
+
+  /** Sale de la cola sin reclamar nada. */
+  async salirDeListaEspera() {
+    if (this.procesandoEspera()) return;
+
+    this.procesandoEspera.set(true);
+    this.errorEspera.set(null);
+    this.avisoEspera.set(null);
+
+    try {
+      const { error } = await this.supabase.salirListaEspera(this.funcionId());
+
+      if (error) {
+        this.errorEspera.set(mensajeErrorListaEspera(error.message));
+        return;
+      }
+
+      this.espera.set(null);
+      this.avisoEspera.set('Saliste de la lista de espera de esta función.');
+    } catch {
+      this.errorEspera.set(mensajeErrorListaEspera());
+    } finally {
+      this.procesandoEspera.set(false);
+    }
+  }
+
+  /**
+   * Reclama el lugar ofrecido: Postgres bloquea la butaca 10 minutos a
+   * nombre de esta sesión y la deja seleccionada para completar el pago.
+   */
+  async reclamarLugar() {
+    if (this.procesandoEspera()) return;
+
+    this.procesandoEspera.set(true);
+    this.errorEspera.set(null);
+    this.avisoEspera.set(null);
+
+    try {
+      const { data, error } = await this.supabase.reclamarLugarListaEspera(
+        this.funcionId(),
+        this.reserva.sesionId,
+      );
+
+      if (error) {
+        this.errorEspera.set(mensajeErrorListaEspera(error.message));
+        await this.cargarEspera();
+        return;
+      }
+
+      const butaca = Array.isArray(data) ? String(data[0] ?? '') : String(data ?? '');
+
+      await this.refrescarButacas();
+
+      if (butaca) {
+        this.butacasSeleccionadas.set([butaca]);
+        this.programarReserva([butaca]);
+        this.avisoEspera.set(
+          `Reclamamos la butaca ${butaca} a tu nombre. Tenés 10 minutos para completar la compra.`,
+        );
+      }
+
+      await this.cargarEspera();
+    } catch {
+      this.errorEspera.set(mensajeErrorListaEspera());
+    } finally {
+      this.procesandoEspera.set(false);
+    }
+  }
+
+  irALogin() {
+    void this.router.navigate(['/login']);
   }
 
   async irAPagar() {

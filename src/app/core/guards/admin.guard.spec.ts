@@ -22,9 +22,14 @@ const PERFIL_BASE: Profile = {
   role: 'admin',
 };
 
-function crearSesion(usuario: Profile | null, inicializada = true) {
+function crearSesion(
+  usuario: Profile | null,
+  secciones: SeccionAdmin[] = [],
+  inicializada = true,
+) {
   return {
     usuario: signal(usuario),
+    secciones: signal<readonly SeccionAdmin[]>(secciones),
     sesionInicializada: signal(inicializada),
     cargarSesion: vi.fn(async () => undefined),
   };
@@ -55,16 +60,25 @@ describe('adminGuard', () => {
   afterEach(() => TestBed.resetTestingModule());
 
   it('permite el acceso del admin a la sección general', async () => {
-    configurar(crearSesion(PERFIL_BASE));
+    configurar(crearSesion(PERFIL_BASE, ['general', 'escaner', 'reporte', 'log']));
 
     expect(await ejecutar()).toBe(true);
   });
 
   it('permite al empleado solo las secciones habilitadas', async () => {
-    configurar(crearSesion({ ...PERFIL_BASE, role: 'empleado' }));
+    configurar(crearSesion({ ...PERFIL_BASE, role: 'empleado' }, ['escaner']));
 
     expect(await ejecutar('escaner')).toBe(true);
     expect(await ejecutar('general')).toEqual({ commands: ['/main'] });
+  });
+
+  it('respeta las secciones de un rol propio', async () => {
+    configurar(crearSesion({ ...PERFIL_BASE, role: 'encargado' }, ['reporte', 'log']));
+
+    expect(await ejecutar('reporte')).toBe(true);
+    expect(await ejecutar('log')).toBe(true);
+    expect(await ejecutar('general')).toEqual({ commands: ['/main'] });
+    expect(await ejecutar('roles')).toEqual({ commands: ['/main'] });
   });
 
   it('redirige al login si no hay sesión', async () => {
@@ -74,7 +88,7 @@ describe('adminGuard', () => {
   });
 
   it('espera a que se inicialice la sesión antes de decidir', async () => {
-    const sesion = crearSesion(null, false);
+    const sesion = crearSesion(null, [], false);
     configurar(sesion);
 
     await ejecutar();
@@ -82,3 +96,4 @@ describe('adminGuard', () => {
     expect(sesion.cargarSesion).toHaveBeenCalledTimes(1);
   });
 });
+

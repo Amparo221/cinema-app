@@ -115,6 +115,12 @@ export class Campanita {
 
     this.cerrar();
 
+    // Los avisos de lista de espera llevan directo a la función agotada.
+    if (notificacion.tipo === 'lista_espera_libre' && notificacion.funcion_id) {
+      await this.router.navigate(['/compra', notificacion.funcion_id]);
+      return;
+    }
+
     if (notificacion.pelicula_id) {
       await this.router.navigate(['/pelicula', notificacion.pelicula_id]);
     }

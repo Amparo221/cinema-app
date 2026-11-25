@@ -1,0 +1,277 @@
+.admin-roles {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.encabezado h1 {
+  margin: 0 0 0.25rem 0;
+}
+
+.encabezado p {
+  margin: 0;
+  max-width: 56rem;
+  color: #555;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.alerta.error {
+  border: 1px solid #f5c2c0;
+  background: #fdecea;
+  color: #8a1c1c;
+}
+
+.alerta.exito {
+  border: 1px solid #b7dfb9;
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.seccion {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.seccion h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+}
+
+.seccion-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.subtitulo {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.aviso {
+  margin: 0 0 1rem 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--violeta);
+  background: var(--violeta-tenue);
+  color: #4a2b4a;
+  font-size: 0.9rem;
+}
+
+.form-contenedor {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fcfbfe;
+}
+
+.form-titulo {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.estado {
+  margin: 0;
+  color: #666;
+  font-style: italic;
+}
+
+.buscador {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo label {
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.campo input {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2d47;
+  font: inherit;
+}
+
+.campo-botones,
+.asignacion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  vertical-align: middle;
+}
+
+thead th {
+  background: #fafbfd;
+  color: #55617a;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+tbody tr:hover {
+  background: #fafafa;
+}
+
+tr.en-edicion {
+  background: var(--violeta-tenue);
+}
+
+.rol-etiqueta {
+  font-weight: 600;
+  color: #1f2d47;
+}
+
+.rol-nombre {
+  margin-left: 0.4rem;
+  color: #6b6b6b;
+  font-size: 0.85rem;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+.email {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: #55617a;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.chip {
+  display: inline-block;
+  margin: 0 0.25rem 0.25rem 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #e8eefc;
+  color: #1f3d7a;
+  font-size: 0.78rem;
+}
+
+.sin-secciones,
+.solo-lectura,
+.confirmar {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.acciones-celda {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2d47;
+  font: inherit;
+  cursor: pointer;
+}
+
+button[type='submit'],
+.btn-primario {
+  border-color: var(--violeta);
+  background: var(--violeta);
+  color: #fff;
+}
+
+.btn-editar {
+  border-color: #bbb;
+}
+
+.btn-peligro {
+  border-color: #b3261e;
+  color: #b3261e;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

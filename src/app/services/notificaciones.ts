@@ -88,6 +88,13 @@ export class NotificacionesService {
         // Sin la migración aplicada seguimos mostrando la bandeja vacía.
       }
 
+      // La lista de espera no usa pg_cron: se procesa al abrir la campanita.
+      try {
+        await this.supabase.refrescarListaEspera();
+      } catch {
+        // Sin la migración de lista de espera la campanita sigue funcionando.
+      }
+
       const [notificacionesRes, suscripcionesRes] = await Promise.all([
         this.supabase.getNotificaciones(usuarioId),
         this.supabase.getSuscripcionesPreventa(usuarioId),

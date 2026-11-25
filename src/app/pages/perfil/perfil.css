@@ -127,3 +127,90 @@
   color: #888;
   font-style: italic;
 }
+
+.error-carga {
+  margin: 0 0 1rem 0;
+  padding: 0.6rem 0.85rem;
+  border-left: 4px solid var(--error, #b3261e);
+  border-radius: 4px;
+  background: var(--error-fondo, #fdecea);
+  color: var(--error, #b3261e);
+}
+
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.paginacion button {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  cursor: pointer;
+}
+
+.paginacion button:hover:not(:disabled) {
+  border-color: var(--violeta);
+  color: var(--violeta-oscuro, var(--violeta));
+}
+
+.paginacion button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginacion button:focus-visible {
+  outline: 2px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.paginacion-estado {
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-cancelar-compra {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--error, #b3261e);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--error, #b3261e);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-cancelar-compra:hover:not(:disabled) {
+  background: var(--error-fondo, #fdecea);
+}
+
+.btn-cancelar-compra:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancelar-compra:focus-visible {
+  outline: 2px solid var(--error, #b3261e);
+  outline-offset: 2px;
+}
+
+.credito-devolucion,
+.no-cancelable {
+  max-width: 16rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  text-align: right;
+  color: #777;
+}
+
+.no-cancelable {
+  color: #8a4b00;
+}

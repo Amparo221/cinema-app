@@ -1,32 +1,60 @@
-import { Rol } from '../models/rol.model';
+import { Rol, SECCIONES_ADMIN, SeccionAdmin } from '../models/rol.model';
 
-export type SeccionAdmin = 'general' | 'escaner' | 'reporte' | 'log';
-
-export const SECCIONES_ADMIN: readonly SeccionAdmin[] = [
-  'general',
-  'escaner',
-  'reporte',
-  'log',
-];
+export { ETIQUETAS_SECCION, SECCIONES_ADMIN, SECCIONES_ASIGNABLES } from '../models/rol.model';
+export type { RolSistema, SeccionAdmin } from '../models/rol.model';
 
 /**
- * Permisos por rol.
+ * Secciones de los roles del sistema.
  *
- * Por ahora viven en el frontend porque los roles son fijos. Cuando el admin
- * pueda configurar permisos desde la base de datos, este mapa se reemplazará
- * por la consulta correspondiente sin cambiar la firma de `tienePermiso`.
+ * Es solo un respaldo: la verdad la tiene `public.roles` y la carga
+ * `SessionService` al iniciar sesión. Se usa cuando la consulta falla,
+ * así la app sigue funcionando aunque el back-office no responda.
  */
-const PERMISOS_POR_ROL: Record<Rol, readonly SeccionAdmin[]> = {
+const SECCIONES_POR_ROL_SISTEMA: Readonly<Record<string, readonly SeccionAdmin[]>> = {
   anonimo: [],
   registrado: [],
   empleado: ['escaner'],
-  admin: SECCIONES_ADMIN,
+  admin: ['general', 'escaner', 'reporte', 'log', 'propuestas'],
+  dueno: SECCIONES_ADMIN,
 };
 
-export function permisosDeRol(rol: Rol): readonly SeccionAdmin[] {
-  return PERMISOS_POR_ROL[rol] ?? [];
+/** Ruta a la que entra cada sección, en orden de preferencia. */
+const DESTINOS: readonly { seccion: SeccionAdmin; ruta: string }[] = [
+  { seccion: 'general', ruta: '/admin/general' },
+  { seccion: 'escaner', ruta: '/escaner' },
+  { seccion: 'propuestas', ruta: '/admin/propuestas' },
+  { seccion: 'reporte', ruta: '/admin/reporte' },
+  { seccion: 'log', ruta: '/admin/log' },
+  { seccion: 'roles', ruta: '/admin/roles' },
+];
+
+/** Secciones de un rol del sistema (respaldo y tests). */
+export function seccionesDeRolSistema(rol: Rol): readonly SeccionAdmin[] {
+  return SECCIONES_POR_ROL_SISTEMA[rol] ?? [];
 }
 
-export function tienePermiso(rol: Rol, seccion: SeccionAdmin): boolean {
-  return permisosDeRol(rol).includes(seccion);
+/**
+ * Deja solo las secciones conocidas.
+ * La base puede traer valores de versiones nuevas; el frontend ignora
+ * lo que no sabe dibujar en vez de romperse.
+ */
+export function normalizarSecciones(
+  valores: readonly string[] | null | undefined,
+): SeccionAdmin[] {
+  return (valores ?? []).filter((valor): valor is SeccionAdmin =>
+    (SECCIONES_ADMIN as readonly string[]).includes(valor),
+  );
 }
+
+export function tienePermiso(
+  secciones: readonly SeccionAdmin[] | null | undefined,
+  seccion: SeccionAdmin,
+): boolean {
+  return (secciones ?? []).includes(seccion);
+}
+
+/** Primera pantalla que le corresponde al usuario según sus permisos. */
+export function rutaInicial(secciones: readonly SeccionAdmin[] | null | undefined): string {
+  return DESTINOS.find((destino) => tienePermiso(secciones, destino.seccion))?.ruta ?? '/main';
+}
+

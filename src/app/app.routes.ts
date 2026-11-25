@@ -43,6 +43,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/mis-peliculas/mis-peliculas').then(m => m.MisPeliculas),
   },
   {
+    path: 'propuestas',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/propuestas/propuestas').then(m => m.Propuestas),
+  },
+  {
     path: 'admin',
     children: [
       { path: '', redirectTo: 'general', pathMatch: 'full' },
@@ -65,6 +70,17 @@ export const routes: Routes = [
         path: 'log',
         canActivate: [adminGuard('log')],
         loadComponent: () => import('./pages/admin/log/log').then(m => m.AdminLog),
+      },
+      {
+        path: 'propuestas',
+        canActivate: [adminGuard('propuestas')],
+        loadComponent: () =>
+          import('./pages/admin/propuestas/propuestas').then(m => m.AdminPropuestas),
+      },
+      {
+        path: 'roles',
+        canActivate: [adminGuard('roles')],
+        loadComponent: () => import('./pages/admin/roles/roles').then(m => m.AdminRoles),
       },
     ],
   },

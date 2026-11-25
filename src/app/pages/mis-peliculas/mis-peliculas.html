@@ -7,6 +7,9 @@
 
     <section class="seccion">
       <h2>Mis reseñas</h2>
+      @if (errorResenas()) {
+        <p class="error-carga" role="alert">{{ errorResenas() }}</p>
+      }
       @if (cargando()) {
         <p>Cargando...</p>
       } @else if (resenas().length === 0) {
@@ -33,6 +36,32 @@
             </a>
           }
         </div>
+
+        @if (paginasResenas() > 1) {
+          <nav class="paginacion" aria-label="Páginas de mis reseñas">
+            <button
+              type="button"
+              [disabled]="!puedeIrAnterior() || cargandoResenas()"
+              (click)="irAPaginaResenas(paginaResenas() - 1)"
+            >
+              Anterior
+            </button>
+            <span class="paginacion-estado" aria-live="polite">
+              @if (cargandoResenas()) {
+                Cargando...
+              } @else {
+                Página {{ paginaResenas() }} de {{ paginasResenas() }} · {{ resumenResenas() }}
+              }
+            </span>
+            <button
+              type="button"
+              [disabled]="!puedeIrSiguiente() || cargandoResenas()"
+              (click)="irAPaginaResenas(paginaResenas() + 1)"
+            >
+              Siguiente
+            </button>
+          </nav>
+        }
       }
     </section>
 

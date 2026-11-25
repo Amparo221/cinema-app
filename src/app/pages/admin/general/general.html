@@ -11,6 +11,65 @@
     <p class="alerta exito" role="status">{{ mensaje() }}</p>
   }
 
+  @if (propuestaOrigen(); as propuesta) {
+    <section class="seccion aviso-propuesta" aria-labelledby="titulo-propuesta-origen">
+      <h2 id="titulo-propuesta-origen">Alta desde una propuesta</h2>
+      <p>
+        El formulario de alta está precargado con «{{ propuesta.titulo }}». La propuesta se marca
+        como <strong>aceptada</strong> cuando guardás la película.
+      </p>
+      @if (peliculaCoincidente(); as existente) {
+        <p class="aviso-coincidencia">
+          Ya hay una película en el catálogo con ese título: «{{ existente.nombre }}». Si el alta de
+          esta propuesta ya se hizo, aceptala con esa película en lugar de crear otra.
+        </p>
+      }
+
+      <div class="acciones-propuesta">
+        @if (peliculaCoincidente(); as existente) {
+          <button
+            type="button"
+            class="btn-primario"
+            [disabled]="resolviendoPropuesta()"
+            (click)="cerrarPropuestaConExistente()"
+          >
+            {{ resolviendoPropuesta() ? 'Aceptando...' : 'Usar «' + existente.nombre + '»' }}
+          </button>
+        }
+        <button type="button" class="btn-secundario-chico" (click)="descartarPropuesta()">
+          Descartar propuesta
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (propuestaSinCerrar(); as pendiente) {
+    <section class="seccion aviso-propuesta" aria-labelledby="titulo-propuesta-pendiente">
+      <h2 id="titulo-propuesta-pendiente">Propuesta sin cerrar</h2>
+      <p>
+        La película de «{{ pendiente.titulo }}» ya está creada. Falta marcarla como
+        <strong>aceptada</strong> para que el cliente reciba el aviso.
+      </p>
+      <div class="acciones-propuesta">
+        <button
+          type="button"
+          class="btn-primario"
+          [disabled]="resolviendoPropuesta()"
+          (click)="reintentarAceptacionPropuesta()"
+        >
+          {{ resolviendoPropuesta() ? 'Reintentando...' : 'Reintentar aceptación' }}
+        </button>
+        <button type="button" class="btn-secundario-chico" (click)="olvidarPropuestaSinCerrar()">
+          Ocultar
+        </button>
+      </div>
+    </section>
+  }
+
+  <div class="seccion">
+    <app-lista-espera-panel />
+  </div>
+
   <section class="seccion" aria-labelledby="titulo-peliculas">
     <div class="seccion-header">
       <div>
@@ -51,7 +110,9 @@
     } @else {
       <div class="tabla-scroll" id="tabla-peliculas">
         <table>
-          <caption class="sr-only">Películas existentes</caption>
+          <caption class="sr-only">
+            Películas existentes
+          </caption>
           <thead>
             <tr>
               <th scope="col">Imagen</th>
@@ -83,11 +144,7 @@
                   {{ pelicula.nombre | recortarTexto: 32 }}
                 </td>
                 <td>{{ pelicula.duracion }} min</td>
-                <td
-                  [attr.title]="
-                    pelicula.generos.length > 0 ? pelicula.generos.join(', ') : null
-                  "
-                >
+                <td [attr.title]="pelicula.generos.length > 0 ? pelicula.generos.join(', ') : null">
                   {{
                     (pelicula.generos.length > 0 ? pelicula.generos.join(', ') : '—')
                       | recortarTexto: 38
@@ -124,9 +181,7 @@
                       "
                     >
                       {{
-                        peliculaReponiendo()?.id === pelicula.id
-                          ? 'Ocultar funciones'
-                          : 'Funciones'
+                        peliculaReponiendo()?.id === pelicula.id ? 'Ocultar funciones' : 'Funciones'
                       }}
                     </button>
                   </div>
@@ -146,9 +201,7 @@
                           <h3 [id]="'reponer-titulo-' + pelicula.id">
                             Reponer funciones de {{ pelicula.nombre }}
                           </h3>
-                          <p class="subtitulo">
-                            {{ pelicula.duracion }} min · próximas funciones
-                          </p>
+                          <p class="subtitulo">{{ pelicula.duracion }} min · próximas funciones</p>
                         </div>
                         <button
                           type="button"
@@ -217,11 +270,7 @@
                                 (click)="cancelarFuncionSeleccionada()"
                                 [disabled]="cancelandoFuncion()"
                               >
-                                {{
-                                  cancelandoFuncion()
-                                    ? 'Cancelando...'
-                                    : 'Sí, cancelar función'
-                                }}
+                                {{ cancelandoFuncion() ? 'Cancelando...' : 'Sí, cancelar función' }}
                               </button>
                               <button
                                 type="button"
@@ -319,7 +368,9 @@
     } @else {
       <div class="tabla-scroll" id="tabla-candy">
         <table>
-          <caption class="sr-only">Productos del candy bar</caption>
+          <caption class="sr-only">
+            Productos del candy bar
+          </caption>
           <thead>
             <tr>
               <th scope="col">Imagen</th>
@@ -347,9 +398,11 @@
                 <td class="nombre" [attr.title]="producto.nombre">
                   {{ producto.nombre | recortarTexto: 26 }}
                 </td>
-                <td><span class="badge categoria">{{ etiquetaCategoria(producto.categoria) }}</span></td>
+                <td>
+                  <span class="badge categoria">{{ etiquetaCategoria(producto.categoria) }}</span>
+                </td>
                 <td [attr.title]="producto.descripcion || null">
-                  {{ (producto.descripcion || '—') | recortarTexto: 38 }}
+                  {{ producto.descripcion || '—' | recortarTexto: 38 }}
                 </td>
                 <td>{{ formatearPrecio(producto.precio) }}</td>
                 <td>
@@ -426,7 +479,9 @@
     } @else {
       <div class="tabla-scroll" id="tabla-recompensas">
         <table>
-          <caption class="sr-only">Recompensas canjeables con puntos</caption>
+          <caption class="sr-only">
+            Recompensas canjeables con puntos
+          </caption>
           <thead>
             <tr>
               <th scope="col">Nombre</th>

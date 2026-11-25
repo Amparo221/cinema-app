@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BUTACAS,
   FilaEstadoButaca,
+  TOTAL_BUTACAS,
+  butacasLibres,
   esButacaVip,
+  generarButacas,
   mapearOcupacion,
   tipoButacaPorFila,
 } from './butaca.model';
@@ -22,6 +26,51 @@ describe('tipoButacaPorFila', () => {
     expect(esButacaVip('J11')).toBe(false);
     expect(esButacaVip('A1')).toBe(false);
     expect(esButacaVip('')).toBe(false);
+  });
+});
+
+describe('layout de la sala', () => {
+  it('genera 532 butacas con codigos unicos', () => {
+    const butacas = generarButacas();
+
+    expect(TOTAL_BUTACAS).toBe(532);
+    expect(butacas).toHaveLength(532);
+    expect(BUTACAS).toHaveLength(532);
+    expect(new Set(butacas.map((butaca) => butaca.codigo)).size).toBe(532);
+  });
+
+  it('deja 14 butacas accesibles por fila en J y K', () => {
+    const filaJ = BUTACAS.filter((butaca) => butaca.fila === 'J');
+
+    expect(filaJ).toHaveLength(14);
+    expect(filaJ.every((butaca) => butaca.tipo === 'accesible')).toBe(true);
+    expect(filaJ.some((butaca) => butaca.codigo === 'J11')).toBe(true);
+    expect(filaJ.some((butaca) => butaca.codigo === 'J15')).toBe(true);
+    expect(filaJ.some((butaca) => butaca.codigo === 'J1')).toBe(false);
+  });
+
+  it('marca R, S y T como VIP', () => {
+    expect(BUTACAS.filter((butaca) => butaca.tipo === 'vip')).toHaveLength(84);
+    expect(BUTACAS.filter((butaca) => butaca.tipo === 'normal')).toHaveLength(420);
+  });
+});
+
+describe('butacasLibres', () => {
+  it('descuenta las vendidas y las reservadas por otros', () => {
+    const libres = butacasLibres(['A1'], ['A2']);
+
+    expect(libres).toHaveLength(TOTAL_BUTACAS - 2);
+    expect(libres).not.toContain('A1');
+    expect(libres).not.toContain('A2');
+    expect(libres).toContain('A3');
+  });
+
+  it('devuelve todas cuando no hay butacas ocupadas', () => {
+    expect(butacasLibres([])).toHaveLength(TOTAL_BUTACAS);
+  });
+
+  it('ignora codigos que no existen en el layout', () => {
+    expect(butacasLibres(['ZZ99'])).toHaveLength(TOTAL_BUTACAS);
   });
 });
 

@@ -1,0 +1,267 @@
+.admin-propuestas {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.encabezado h1 {
+  margin: 0 0 0.25rem 0;
+}
+
+.encabezado p {
+  margin: 0;
+  max-width: 52rem;
+  color: #555;
+}
+
+.seccion {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.seccion h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.15rem;
+}
+
+.seccion-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.seccion-header h2 {
+  margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo label {
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.campo input {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2d47;
+  font: inherit;
+}
+
+.campo-botones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2d47;
+  font: inherit;
+  cursor: pointer;
+}
+
+button[type='submit'],
+.btn-primario {
+  border-color: var(--violeta);
+  background: var(--violeta);
+  color: #fff;
+}
+
+.btn-peligro {
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.alerta {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.alerta.error {
+  border: 1px solid #f5c2c0;
+  background: #fdecea;
+  color: #8a1c1c;
+}
+
+.alerta.exito {
+  border: 1px solid #b7dfb9;
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.estado {
+  margin: 0;
+  color: #666;
+  font-style: italic;
+}
+
+.lista-propuestas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.propuesta {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fcfbfe;
+}
+
+.propuesta.pendiente {
+  border-color: #f0d9b5;
+  background: #fffdf8;
+}
+
+.propuesta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.propuesta-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cliente {
+  margin: 0.15rem 0 0 0;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.propuesta-texto {
+  margin: 0.6rem 0;
+  color: #333;
+}
+
+.propuesta-motivo,
+.nota,
+.pelicula-creada {
+  margin: 0.35rem 0;
+  color: #444;
+}
+
+.pelicula-creada {
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.fecha {
+  margin: 0.5rem 0 0 0;
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.pendiente {
+  background: #fff4e5;
+  color: #7a4a00;
+}
+
+.badge.aceptada {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.badge.rechazada {
+  background: #fdecea;
+  color: #8a1c1c;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.rechazo {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rechazo label {
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.rechazo textarea {
+  border: 1px solid #c9d2e0;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #444;
+}

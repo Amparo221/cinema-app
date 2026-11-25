@@ -23,6 +23,7 @@ function crearSupabase() {
   return {
     getSession: vi.fn(),
     getProfile: vi.fn(),
+    getSeccionesDeRol: vi.fn(),
     signIn: vi.fn(),
     signOut: vi.fn(),
   };
@@ -50,6 +51,8 @@ describe('SessionService', () => {
 
   beforeEach(() => {
     supabase = crearSupabase();
+    // Sin respuesta de la base: se usa el mapa de respaldo de los roles del sistema.
+    supabase.getSeccionesDeRol.mockResolvedValue(null);
 
     TestBed.configureTestingModule({
       providers: [SessionService, { provide: SupabaseService, useValue: supabase }],
@@ -70,6 +73,29 @@ describe('SessionService', () => {
     expect(supabase.getProfile).toHaveBeenCalledWith('usuario-1');
     expect(servicio.usuario()).toEqual(PERFIL);
     expect(servicio.sesionInicializada()).toBe(true);
+  });
+
+  it('carga las secciones del rol cuando la base las devuelve', async () => {
+    supabase.getSession.mockResolvedValue(sesionDe('usuario-1'));
+    supabase.getProfile.mockResolvedValue({ ...PERFIL, role: 'encargado' });
+    supabase.getSeccionesDeRol.mockResolvedValue(['reporte', 'log']);
+
+    await servicio.cargarSesion();
+
+    expect(supabase.getSeccionesDeRol).toHaveBeenCalledWith('encargado');
+    expect(servicio.secciones()).toEqual(['reporte', 'log']);
+    expect(servicio.puede('reporte')).toBe(true);
+    expect(servicio.puede('general')).toBe(false);
+  });
+
+  it('usa las secciones del sistema si la consulta falla', async () => {
+    supabase.getSession.mockResolvedValue(sesionDe('usuario-1'));
+    supabase.getProfile.mockResolvedValue(PERFIL);
+
+    await servicio.cargarSesion();
+
+    // El respaldo de `admin` incluye general; así el panel no queda bloqueado.
+    expect(servicio.secciones()).toContain('general');
   });
 
   it('no vuelve a consultar la sesión una vez inicializada', async () => {
@@ -121,6 +147,7 @@ describe('SessionService', () => {
     await servicio.logout();
 
     expect(servicio.usuario()).toBeNull();
+    expect(servicio.secciones()).toEqual([]);
     expect(servicio.sesionInicializada()).toBe(false);
 
     supabase.getSession.mockResolvedValue(sinSesion());

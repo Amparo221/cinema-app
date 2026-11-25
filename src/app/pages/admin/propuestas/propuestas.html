@@ -1,0 +1,144 @@
+<div class="admin-propuestas">
+  <header class="encabezado">
+    <h1>Propuestas</h1>
+    <p>
+      Películas que piden los clientes. Aceptar abre el alta de película con los datos
+      cargados; la propuesta se marca como aceptada cuando guardás la película.
+    </p>
+  </header>
+
+  @if (error()) {
+    <p class="alerta error" role="alert">{{ error() }}</p>
+  }
+  @if (mensaje()) {
+    <p class="alerta exito" role="status">{{ mensaje() }}</p>
+  }
+
+  <section class="seccion" aria-labelledby="titulo-filtros">
+    <h2 id="titulo-filtros">Filtros</h2>
+
+    <form class="filtros" (submit)="buscar($event)">
+      <div class="campo">
+        <label for="propuestas-estado">Estado</label>
+        <app-select
+          id="propuestas-estado"
+          [opciones]="opcionesEstado"
+          [valor]="estado()"
+          (valorChange)="cambiarEstado($event)"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="propuestas-texto">Cliente o título</label>
+        <input
+          id="propuestas-texto"
+          type="search"
+          [value]="texto()"
+          placeholder="Nombre, email o título"
+          (input)="cambiarTexto($event)"
+        />
+      </div>
+
+      <div class="campo-botones">
+        <button type="submit">Buscar</button>
+        <button type="button" (click)="limpiarFiltros()" [disabled]="!hayFiltros()">
+          Limpiar
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="seccion" aria-labelledby="titulo-bandeja">
+    <div class="seccion-header">
+      <h2 id="titulo-bandeja">Bandeja</h2>
+      @if (!cargando()) {
+        <p class="subtitulo">{{ total() }} {{ total() === 1 ? 'propuesta' : 'propuestas' }}</p>
+      }
+    </div>
+
+    @if (cargando()) {
+      <p class="estado" role="status">Cargando propuestas...</p>
+    } @else if (vacio()) {
+      <p class="estado">No hay propuestas con estos filtros.</p>
+    } @else {
+      <ul class="lista-propuestas">
+        @for (propuesta of propuestas(); track propuesta.id) {
+          <li class="propuesta" [class.pendiente]="propuesta.estado === 'pendiente'">
+            <div class="propuesta-header">
+              <div>
+                <h3>{{ propuesta.titulo }}</h3>
+                <p class="cliente">
+                  {{ propuesta.usuario_nombre }} · {{ propuesta.usuario_email }}
+                </p>
+              </div>
+              <span [class]="'badge ' + propuesta.estado">
+                {{ etiquetaEstado(propuesta.estado) }}
+              </span>
+            </div>
+
+            <p class="propuesta-texto">{{ propuesta.descripcion }}</p>
+            <p class="propuesta-motivo"><strong>Por qué:</strong> {{ propuesta.motivo }}</p>
+
+            @if (propuesta.pelicula) {
+              <p class="pelicula-creada">Película creada: {{ propuesta.pelicula }}</p>
+            }
+
+            @if (propuesta.nota_admin) {
+              <p class="nota"><strong>Nota enviada:</strong> {{ propuesta.nota_admin }}</p>
+            }
+
+            <p class="fecha">
+              Enviada el {{ formatearFecha(propuesta.creada_at) }}
+              @if (propuesta.resuelta_at) {
+                · Resuelta el {{ formatearFecha(propuesta.resuelta_at) }}
+              }
+            </p>
+
+            @if (propuesta.estado === 'pendiente') {
+              @if (rechazandoId() === propuesta.id) {
+                <div class="rechazo">
+                  <label [for]="'nota-' + propuesta.id">
+                    Nota para el cliente (opcional)
+                  </label>
+                  <textarea
+                    [id]="'nota-' + propuesta.id"
+                    rows="2"
+                    [value]="notaRechazo()"
+                    (input)="notaRechazo.set($any($event.target).value)"
+                    placeholder="Por ejemplo: ya la tenemos programada para el mes que viene."
+                  ></textarea>
+                  <div class="acciones">
+                    <button type="button" (click)="cancelarRechazo()">Cancelar</button>
+                    <button
+                      type="button"
+                      class="btn-peligro"
+                      [disabled]="resolviendo() === propuesta.id"
+                      (click)="rechazar(propuesta)"
+                    >
+                      {{ resolviendo() === propuesta.id ? 'Rechazando...' : 'Confirmar rechazo' }}
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="acciones">
+                  <button type="button" class="btn-primario" (click)="aceptar(propuesta)">
+                    Aceptar y crear película
+                  </button>
+                  <button type="button" (click)="abrirRechazo(propuesta.id)">Rechazar</button>
+                </div>
+              }
+            }
+          </li>
+        }
+      </ul>
+
+      <nav class="paginacion" aria-label="Paginación de propuestas">
+        <button type="button" (click)="irAnterior()" [disabled]="pagina() <= 1">Anterior</button>
+        <span aria-live="polite">Página {{ pagina() }} de {{ totalPaginas() }}</span>
+        <button type="button" (click)="irSiguiente()" [disabled]="pagina() >= totalPaginas()">
+          Siguiente
+        </button>
+      </nav>
+    }
+  </section>
+</div>

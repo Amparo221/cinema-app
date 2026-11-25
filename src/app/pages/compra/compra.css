@@ -4,6 +4,49 @@
   padding-bottom: 180px; /* espacio para el footer fijo */
 }
 
+.acciones-prueba {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px dashed #d0a12a;
+  border-radius: 6px;
+  background: #fffaeb;
+}
+
+.btn-prueba {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid #b98a12;
+  border-radius: 6px;
+  background: #fff;
+  color: #7a5600;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-prueba:hover:not(:disabled) {
+  background: #fff3cd;
+}
+
+.btn-prueba:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-prueba:focus-visible {
+  outline: 2px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.ayuda-prueba {
+  margin: 0;
+  color: #7a5600;
+  font-size: 0.8rem;
+}
+
 .combo-banner {
   display: flex;
   justify-content: space-between;
@@ -327,5 +370,81 @@
   background: #fff4e5;
   color: #8a4b00;
   font-size: 0.8rem;
+}
+
+/* Lista de espera de funciones agotadas */
+.lista-espera {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-left: 4px solid var(--violeta);
+  border-radius: 6px;
+  background: var(--violeta-tenue);
+}
+
+.lista-espera h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.lista-espera-intro,
+.lista-espera-estado,
+.lista-espera-destacado {
+  margin: 0 0 0.75rem;
+}
+
+.lista-espera-destacado {
+  font-weight: 600;
+}
+
+.btn-espera {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--violeta);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--violeta);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-espera:hover:not(:disabled) {
+  background: #f4eefe;
+}
+
+.btn-espera-primario {
+  background: var(--violeta);
+  color: #fff;
+}
+
+.btn-espera-primario:hover:not(:disabled) {
+  background: #4a2482;
+}
+
+.btn-espera:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-espera:focus-visible {
+  outline: 2px solid var(--violeta);
+  outline-offset: 2px;
+}
+
+.ayuda-espera {
+  margin: 0.5rem 0 0;
+  color: #5a5a5a;
+  font-size: 0.8rem;
+}
+
+.lista-espera-ok {
+  margin: 0.75rem 0 0;
+  color: #1b6b3a;
+  font-size: 0.9rem;
+}
+
+.lista-espera-error {
+  margin: 0.75rem 0 0;
+  color: #b00020;
+  font-size: 0.9rem;
 }
 

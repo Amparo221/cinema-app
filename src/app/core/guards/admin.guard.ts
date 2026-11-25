@@ -5,8 +5,8 @@ import { SessionService } from '../../services/session';
 
 /**
  * Guard por sección: cada ruta de admin declara qué permiso necesita.
- * Así, cuando los permisos pasen a la base de datos, cada sección puede
- * habilitarse o restringirse de forma independiente.
+ * Las secciones salen de `public.roles` (las carga SessionService), así
+ * que un rol propio puede habilitar o restringir cada pantalla.
  */
 export function adminGuard(seccion: SeccionAdmin): CanActivateFn {
   return async () => {
@@ -22,10 +22,11 @@ export function adminGuard(seccion: SeccionAdmin): CanActivateFn {
       return router.createUrlTree(['/login']);
     }
 
-    if (tienePermiso(usuario.role, seccion)) {
+    if (tienePermiso(session.secciones(), seccion)) {
       return true;
     }
 
     return router.createUrlTree(['/main']);
   };
 }
+

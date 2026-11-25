@@ -1,0 +1,153 @@
+<div class="propuestas">
+  <header class="encabezado">
+    <h1>Proponer una película</h1>
+    <p>
+      Contanos qué película te gustaría ver en CineArcos. El equipo la revisa y, si la
+      acepta, la sumamos al catálogo.
+    </p>
+  </header>
+
+  @if (!usuario()) {
+    <section class="seccion">
+      <p>Tenés que iniciar sesión para proponer una película.</p>
+      <a class="btn-primario" routerLink="/login">Iniciar sesión</a>
+    </section>
+  } @else {
+    @if (error()) {
+      <p class="alerta error" role="alert">{{ error() }}</p>
+    }
+    @if (mensaje()) {
+      <p class="alerta exito" role="status">{{ mensaje() }}</p>
+    }
+
+    @if (pendiente(); as esperando) {
+      <section class="seccion" aria-labelledby="titulo-pendiente">
+        <h2 id="titulo-pendiente">Tu propuesta está en revisión</h2>
+        <p class="subtitulo">
+          Podés tener una sola propuesta pendiente. Cuando el equipo la resuelva vas a
+          recibir un aviso en la campanita.
+        </p>
+
+        <article class="propuesta">
+          <div class="propuesta-header">
+            <h3>{{ esperando.titulo }}</h3>
+            <span class="chip pendiente">Pendiente</span>
+          </div>
+          <p class="propuesta-texto">{{ esperando.descripcion }}</p>
+          <p class="propuesta-motivo"><strong>Por qué:</strong> {{ esperando.motivo }}</p>
+          <p class="fecha">Enviada el {{ formatearFecha(esperando.creada_at) }}</p>
+        </article>
+      </section>
+    } @else {
+      <section class="seccion" aria-labelledby="titulo-form">
+        <h2 id="titulo-form">Nueva propuesta</h2>
+
+        <form class="formulario" (ngSubmit)="enviar()" novalidate>
+          <div class="campo">
+            <label for="titulo">Título</label>
+            <input
+              id="titulo"
+              name="titulo"
+              type="text"
+              autocomplete="off"
+              [(ngModel)]="titulo"
+              [attr.maxlength]="limites.titulo.max"
+              [attr.aria-invalid]="errores().titulo ? 'true' : null"
+              [attr.aria-describedby]="errores().titulo ? 'titulo-error' : 'titulo-ayuda'"
+            />
+            @if (errores().titulo) {
+              <p class="campo-error" id="titulo-error" role="alert">{{ errores().titulo }}</p>
+            } @else {
+              <p class="campo-ayuda" id="titulo-ayuda">
+                Entre {{ limites.titulo.min }} y {{ limites.titulo.max }} caracteres.
+              </p>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="descripcion">Descripción</label>
+            <textarea
+              id="descripcion"
+              name="descripcion"
+              rows="4"
+              [(ngModel)]="descripcion"
+              [attr.maxlength]="limites.descripcion.max"
+              [attr.aria-invalid]="errores().descripcion ? 'true' : null"
+              [attr.aria-describedby]="
+                errores().descripcion ? 'descripcion-error' : 'descripcion-ayuda'
+              "
+            ></textarea>
+            @if (errores().descripcion) {
+              <p class="campo-error" id="descripcion-error" role="alert">
+                {{ errores().descripcion }}
+              </p>
+            } @else {
+              <p class="campo-ayuda" id="descripcion-ayuda">
+                De qué se trata, quiénes actúan, por qué vale la pena.
+              </p>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="motivo">¿Por qué la querés ver?</label>
+            <textarea
+              id="motivo"
+              name="motivo"
+              rows="3"
+              [(ngModel)]="motivo"
+              [attr.maxlength]="limites.motivo.max"
+              [attr.aria-invalid]="errores().motivo ? 'true' : null"
+              [attr.aria-describedby]="errores().motivo ? 'motivo-error' : 'motivo-ayuda'"
+            ></textarea>
+            @if (errores().motivo) {
+              <p class="campo-error" id="motivo-error" role="alert">{{ errores().motivo }}</p>
+            } @else {
+              <p class="campo-ayuda" id="motivo-ayuda">
+                Contanos por qué te gustaría que esté en cartelera.
+              </p>
+            }
+          </div>
+
+          <div class="acciones">
+            <button type="submit" class="btn-primario" [disabled]="enviando()">
+              {{ enviando() ? 'Enviando...' : 'Enviar propuesta' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <section class="seccion" aria-labelledby="titulo-historial">
+      <h2 id="titulo-historial">Mis propuestas</h2>
+
+      @if (cargando()) {
+        <p class="estado">Cargando tus propuestas...</p>
+      } @else if (propuestas().length === 0) {
+        <p class="estado">Todavía no enviaste ninguna propuesta.</p>
+      } @else {
+        <ul class="lista-propuestas">
+          @for (propuesta of propuestas(); track propuesta.id) {
+            <li class="propuesta">
+              <div class="propuesta-header">
+                <h3>{{ propuesta.titulo }}</h3>
+                <span class="chip" [class]="propuesta.estado">
+                  {{ etiquetaEstado(propuesta.estado) }}
+                </span>
+              </div>
+              <p class="propuesta-texto">{{ propuesta.descripcion }}</p>
+              @if (propuesta.nota_admin) {
+                <p class="nota-admin"><strong>Respuesta del equipo:</strong> {{ propuesta.nota_admin }}</p>
+              }
+              <p class="fecha">
+                Enviada el {{ formatearFecha(propuesta.creada_at) }}
+                @if (propuesta.resuelta_at) {
+                  · Resuelta el {{ formatearFecha(propuesta.resuelta_at) }}
+                }
+              </p>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>

@@ -1,20 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CodeScannerService } from 'ng-code-scanner';
 import { EntradaQr } from '../../models/entrada-qr.model';
 import { SupabaseService } from '../../services/supabase';
 import { Escaner } from './escaner';
 
 /**
  * Stub de la librería de cámara: en jsdom no hay cámara y así los tests no
- * cargan html5-qrcode. El factory es sincrónico a propósito: `EscanerCamara`
- * importa `CodeScannerService` como valor y un factory `async` rompe el orden de
- * inicialización de los imports.
+ * abren un stream de video de verdad.
  */
-vi.mock('ng-code-scanner', () => ({
-  CodeScannerComponent: class {},
+vi.mock('html5-qrcode', () => ({
   Html5QrcodeSupportedFormats: { QR_CODE: 0 },
-  CodeScannerService: class {},
+  Html5Qrcode: class {
+    isScanning = false;
+
+    start(): Promise<void> {
+      return Promise.resolve();
+    }
+
+    stop(): Promise<void> {
+      return Promise.resolve();
+    }
+
+    clear(): void {}
+  },
 }));
 
 /** Fecha local en formato yyyy-mm-dd, igual que la manda Postgres. */
@@ -54,13 +62,6 @@ describe('Escaner', () => {
     validarEntradaQr: vi.fn(),
   };
 
-  /** Doble del servicio de cámara: `EscanerCamara` lo inyecta y en jsdom no hay cámara. */
-  const camaraMock = {
-    isScanning: () => false,
-    startScanning: vi.fn().mockResolvedValue(undefined),
-    stopScanning: vi.fn().mockResolvedValue(undefined),
-  };
-
   beforeEach(async () => {
     vi.clearAllMocks();
     supabaseMock.consultarEntradaQr.mockResolvedValue({ data: entrada(), error: null });
@@ -71,10 +72,7 @@ describe('Escaner', () => {
 
     await TestBed.configureTestingModule({
       imports: [Escaner],
-      providers: [
-        { provide: SupabaseService, useValue: supabaseMock },
-        { provide: CodeScannerService, useValue: camaraMock },
-      ],
+      providers: [{ provide: SupabaseService, useValue: supabaseMock }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Escaner);

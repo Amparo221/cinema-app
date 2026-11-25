@@ -10,6 +10,8 @@ import {
   ResultadoSubida,
 } from '../models/admin.model';
 import { FuncionProgramada, SolicitudAutomatica } from '../models/programacion.model';
+import { NuevaPropuesta } from '../models/propuesta.model';
+import { POR_PAGINA } from '../shared/paginacion';
 
 interface FilaAsientoVendido {
   funciones: { pelicula_id: number } | null;
@@ -21,10 +23,7 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabasePublishableKey
-    );
+    this.supabase = createClient(environment.supabaseUrl, environment.supabasePublishableKey);
   }
 
   async signUp(email: string, password: string, metadata: RegistroMetadata) {
@@ -63,26 +62,15 @@ export class SupabaseService {
     return data as Profile;
   }
   async getPelicula(id: number) {
-    return this.supabase
-      .from('peliculas')
-      .select('*')
-      .eq('id', id)
-      .single();
+    return this.supabase.from('peliculas').select('*').eq('id', id).single();
   }
 
   async getTodasLasPeliculas() {
-    return this.supabase
-      .from('peliculas')
-      .select('*')
-      .order('nombre');
+    return this.supabase.from('peliculas').select('*').order('nombre');
   }
 
   async crearPelicula(datos: NuevaPelicula) {
-    return this.supabase
-      .from('peliculas')
-      .insert(datos)
-      .select()
-      .single();
+    return this.supabase.from('peliculas').insert(datos).select().single();
   }
 
   /** Edición desde /admin/general; `imagen` es el archivo vigente. */
@@ -105,10 +93,12 @@ export class SupabaseService {
   async getFuncionesDePelicula(peliculaId: number) {
     return this.supabase
       .from('funciones')
-      .select(`
+      .select(
+        `
       id, pelicula_id, sala_id, fecha, hora, formato, idioma,
       salas (nombre)
-    `)
+    `,
+      )
       .eq('pelicula_id', peliculaId)
       .is('cancelada_at', null)
       .gte('fecha', new Date().toISOString().split('T')[0])
@@ -148,11 +138,13 @@ export class SupabaseService {
   async getFuncionesEnRango(desde: string, hasta: string) {
     return this.supabase
       .from('funciones')
-      .select(`
+      .select(
+        `
       id, pelicula_id, sala_id, fecha, hora, formato, idioma,
       salas (nombre),
       peliculas (nombre, duracion)
-    `)
+    `,
+      )
       .gte('fecha', desde)
       .lte('fecha', hasta)
       .is('cancelada_at', null)
@@ -186,19 +178,11 @@ export class SupabaseService {
   }
 
   async getProductosCandy() {
-    return this.supabase
-      .from('productos_candy')
-      .select('*')
-      .order('categoria')
-      .order('nombre');
+    return this.supabase.from('productos_candy').select('*').order('categoria').order('nombre');
   }
 
   async crearProductoCandy(datos: NuevoProductoCandy) {
-    return this.supabase
-      .from('productos_candy')
-      .insert(datos)
-      .select()
-      .single();
+    return this.supabase.from('productos_candy').insert(datos).select().single();
   }
 
   private readonly selectCombo = `
@@ -213,11 +197,7 @@ export class SupabaseService {
   `;
 
   async getCombosDisponibles() {
-    return this.supabase
-      .from('combos')
-      .select(this.selectCombo)
-      .eq('activo', true)
-      .order('puntos');
+    return this.supabase.from('combos').select(this.selectCombo).eq('activo', true).order('puntos');
   }
 
   /** Los combos no dependen de una película; se devuelve el catálogo activo. */
@@ -226,11 +206,7 @@ export class SupabaseService {
   }
 
   async getCombo(id: number) {
-    return this.supabase
-      .from('combos')
-      .select(this.selectCombo)
-      .eq('id', id)
-      .single();
+    return this.supabase.from('combos').select(this.selectCombo).eq('id', id).single();
   }
 
   async getTodosLosCombos() {
@@ -242,19 +218,11 @@ export class SupabaseService {
   }
 
   async crearCombo(datos: NuevoCombo) {
-    return this.supabase
-      .from('combos')
-      .insert(datos)
-      .select()
-      .single();
+    return this.supabase.from('combos').insert(datos).select().single();
   }
 
   async actualizarCombo(id: number, datos: Partial<NuevoCombo>) {
-    const { data, error } = await this.supabase
-      .from('combos')
-      .update(datos)
-      .eq('id', id)
-      .select();
+    const { data, error } = await this.supabase.from('combos').update(datos).eq('id', id).select();
 
     if (error) return { data: null, error };
     if (!data || data.length === 0) {
@@ -279,19 +247,14 @@ export class SupabaseService {
     return { data: data[0], error: null };
   }
 
-  async subirImagen(
-    bucket: 'peliculas' | 'candy',
-    archivo: File
-  ): Promise<ResultadoSubida> {
+  async subirImagen(bucket: 'peliculas' | 'candy', archivo: File): Promise<ResultadoSubida> {
     const nombreArchivo = `${this.generarIdArchivo()}.${this.extensionDe(archivo)}`;
 
-    const { error } = await this.supabase.storage
-      .from(bucket)
-      .upload(nombreArchivo, archivo, {
-        cacheControl: '3600',
-        upsert: false,
-        contentType: archivo.type || undefined,
-      });
+    const { error } = await this.supabase.storage.from(bucket).upload(nombreArchivo, archivo, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: archivo.type || undefined,
+    });
 
     if (error) return { nombreArchivo: null, error: error.message };
     return { nombreArchivo, error: null };
@@ -367,10 +330,12 @@ export class SupabaseService {
   async getAsientosVendidosPorPelicula(): Promise<Map<number, number>> {
     const { data, error } = await this.supabase
       .from('compra_butacas')
-      .select(`
+      .select(
+        `
         funciones!inner (pelicula_id),
         compras!inner (estado)
-      `)
+      `,
+      )
       .eq('estado', 'vendida')
       .neq('compras.estado', 'cancelada');
 
@@ -428,7 +393,7 @@ export class SupabaseService {
   async actualizarPerfilTrasCompra(
     usuarioId: string,
     puntosTotales: number,
-    creditosRestantes: number
+    creditosRestantes: number,
   ) {
     return this.supabase
       .from('profiles')
@@ -451,18 +416,20 @@ export class SupabaseService {
 
   async getCompra(id: string) {
     return this.supabase
-    .from('compras')
-    .select(`
+      .from('compras')
+      .select(
+        `
       *,
       funciones (
         fecha, hora,
         peliculas (nombre, duracion, imagen),
         salas (nombre)
       )
-    `)
-    .eq('id', id)
-    .single();
-}
+    `,
+      )
+      .eq('id', id)
+      .single();
+  }
 
   async cancelarCompra(compraId: string) {
     return this.supabase.rpc('cancelar_compra_liberando', { p_compra_id: compraId });
@@ -497,46 +464,60 @@ export class SupabaseService {
     return this.supabase.storage;
   }
 
-  async getCanjesDeUsuario(usuarioId: string) {
+  /** Canjes del usuario, paginados: el más reciente primero. */
+  async getCanjesDeUsuario(usuarioId: string, limite = POR_PAGINA, offset = 0) {
     return this.supabase
       .from('canjes')
-      .select(`
+      .select(
+        `
         *,
         combos (nombre)
-      `)
+      `,
+        { count: 'exact' },
+      )
       .eq('usuario_id', usuarioId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limite - 1);
   }
 
   async getComprasDeUsuario(usuarioId: string) {
     return this.supabase
       .from('compras')
-      .select(`
-        id, total, estado, created_at, combo_nombre, combo_plus, puntos_usados,
+      .select(
+        `
+        id, usuario_id, total, estado, created_at, combo_id, combo_nombre, combo_plus, precio_butacas, descuento_primera_compra, descuento_cincuenta, puntos_usados,
         funciones (fecha, hora, peliculas (nombre))
-      `)
+      `,
+      )
       .eq('usuario_id', usuarioId)
       .order('created_at', { ascending: false });
   }
 
-  async getResenasDeUsuario(usuarioId: string) {
+  /** Reseñas del usuario, paginadas: la más reciente primero. */
+  async getResenasDeUsuario(usuarioId: string, limite = POR_PAGINA, offset = 0) {
     return this.supabase
       .from('resenas')
-      .select(`
+      .select(
+        `
         id, usuario_id, pelicula_id, estrellas, comentario, created_at,
         peliculas (nombre, imagen)
-      `)
+      `,
+        { count: 'exact' },
+      )
       .eq('usuario_id', usuarioId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limite - 1);
   }
 
   async getPeliculasCompradasDeUsuario(usuarioId: string) {
     return this.supabase
       .from('compras')
-      .select(`
+      .select(
+        `
         id, created_at, estado,
         funciones (peliculas (id, nombre, imagen))
-      `)
+      `,
+      )
       .eq('usuario_id', usuarioId)
       .order('created_at', { ascending: false });
   }
@@ -547,7 +528,7 @@ export class SupabaseService {
   async getNotificaciones(usuarioId: string) {
     return this.supabase
       .from('notificaciones')
-      .select('id, usuario_id, pelicula_id, tipo, titulo, mensaje, leida, created_at')
+      .select('id, usuario_id, pelicula_id, funcion_id, tipo, titulo, mensaje, leida, created_at')
       .eq('usuario_id', usuarioId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -584,5 +565,163 @@ export class SupabaseService {
 
   async marcarTodasNotificacionesLeidas() {
     return this.supabase.rpc('marcar_todas_notificaciones_leidas');
+  }
+
+  // --- Lista de espera de funciones agotadas ---
+
+  /** Fila de la espera del usuario para una función (o null). */
+  async getMiEspera(funcionId: number, usuarioId: string) {
+    return this.supabase
+      .from('lista_espera')
+      .select(
+        'id, funcion_id, usuario_id, estado, butaca_reservada, notificado_at, reclamo_expira_at, created_at',
+      )
+      .eq('funcion_id', funcionId)
+      .eq('usuario_id', usuarioId)
+      .maybeSingle();
+  }
+
+  async unirseListaEspera(funcionId: number) {
+    return this.supabase.rpc('unirse_lista_espera', { p_funcion_id: funcionId });
+  }
+
+  async salirListaEspera(funcionId: number) {
+    return this.supabase.rpc('salir_lista_espera', { p_funcion_id: funcionId });
+  }
+
+  /**
+   * RPC: bloquea la butaca ofrecida y la deja a nombre de esta sesión.
+   * Devuelve el código de butaca reclamado.
+   */
+  async reclamarLugarListaEspera(funcionId: number, sesionId: string) {
+    return this.supabase.rpc('reclamar_lugar_lista_espera', {
+      p_funcion_id: funcionId,
+      p_sesion_id: sesionId,
+    });
+  }
+
+  /** RPC: avisa a los primeros de la fila de las funciones del usuario. */
+  async refrescarListaEspera() {
+    return this.supabase.rpc('refrescar_lista_espera');
+  }
+
+  /** RPC del back-office: funciones con gente esperando. */
+  async getReporteListaEspera() {
+    return this.supabase.rpc('reporte_lista_espera');
+  }
+
+  /** RPC: fuerza el aviso de la fila de una función (botón del admin). */
+  async procesarListaEspera(funcionId: number) {
+    return this.supabase.rpc('procesar_lista_espera', { p_funcion_id: funcionId });
+  }
+
+  // --- Roles y permisos (/admin/roles) ---
+
+  /**
+   * Secciones del back-office que habilita un rol.
+   *
+   * `null` cuando la consulta falló: SessionService usa el respaldo local
+   * para no dejar al usuario sin menú si el back-office no responde.
+   */
+  async getSeccionesDeRol(rol: string): Promise<string[] | null> {
+    const { data, error } = await this.supabase
+      .from('roles')
+      .select('secciones')
+      .eq('nombre', rol)
+      .maybeSingle();
+
+    if (error) return null;
+
+    const fila = data as { secciones: string[] | null } | null;
+    return fila?.secciones ?? [];
+  }
+
+  /** RPC: roles con la cantidad de usuarios asignados (solo dueño). */
+  async getRoles() {
+    return this.supabase.rpc('listar_roles');
+  }
+
+  async crearRol(nombre: string, etiqueta: string, secciones: string[]) {
+    return this.supabase.rpc('crear_rol', {
+      p_nombre: nombre,
+      p_etiqueta: etiqueta,
+      p_secciones: secciones,
+    });
+  }
+
+  async actualizarRol(nombre: string, etiqueta: string, secciones: string[]) {
+    return this.supabase.rpc('actualizar_rol', {
+      p_nombre: nombre,
+      p_etiqueta: etiqueta,
+      p_secciones: secciones,
+    });
+  }
+
+  async eliminarRol(nombre: string) {
+    return this.supabase.rpc('eliminar_rol', { p_nombre: nombre });
+  }
+
+  /** RPC: buscador paginado de usuarios para asignarles un rol. */
+  async getUsuariosDeRol(texto: string, limite: number, offset: number) {
+    return this.supabase.rpc('listar_usuarios', {
+      p_texto: texto.trim() || null,
+      p_limite: limite,
+      p_offset: Math.max(0, offset),
+    });
+  }
+
+  async asignarRol(usuarioId: string, rol: string) {
+    return this.supabase.rpc('asignar_rol', {
+      p_usuario_id: usuarioId,
+      p_rol: rol,
+    });
+  }
+
+  // --- Propuestas de películas (/propuestas y /admin/propuestas) ---
+
+  /** Propuestas del cliente, de la más nueva a la más vieja. */
+  async getMisPropuestas(usuarioId: string) {
+    return this.supabase
+      .from('propuestas')
+      .select('*')
+      .eq('usuario_id', usuarioId)
+      .order('creada_at', { ascending: false });
+  }
+
+  async crearPropuesta(propuesta: NuevaPropuesta) {
+    return this.supabase.from('propuestas').insert(propuesta).select().single();
+  }
+
+  /** Una propuesta puntual; se usa al precargar el alta de película. */
+  async getPropuesta(id: number) {
+    return this.supabase.from('propuestas').select('*').eq('id', id).maybeSingle();
+  }
+
+  /** RPC: bandeja del admin con filtro por estado y buscador. */
+  async listarPropuestas(estado: string, texto: string, limite: number, offset: number) {
+    return this.supabase.rpc('listar_propuestas', {
+      p_estado: estado || null,
+      p_texto: texto.trim() || null,
+      p_limite: limite,
+      p_offset: Math.max(0, offset),
+    });
+  }
+
+  /**
+   * RPC: acepta o rechaza una propuesta y avisa al cliente por la campanita.
+   * Al aceptar hay que pasar la película ya creada.
+   */
+  async resolverPropuesta(
+    propuestaId: number,
+    estado: 'aceptada' | 'rechazada',
+    nota: string | null,
+    peliculaId: number | null = null,
+  ) {
+    return this.supabase.rpc('resolver_propuesta', {
+      p_propuesta_id: propuestaId,
+      p_estado: estado,
+      p_nota: nota,
+      p_pelicula_id: peliculaId,
+    });
   }
 }

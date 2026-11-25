@@ -25,6 +25,65 @@ export interface Butaca {
   tipo: TipoButaca;
 }
 
+/** Filas de la sala, de la A a la T. */
+export const FILAS = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+  'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+] as const;
+
+/** Butacas de una fila comun: 4 + 20 + 4 (pasillo en 5 y 26). */
+function columnasNormales(): number[] {
+  const columnas: number[] = [];
+  for (let col = 1; col <= 4; col++) columnas.push(col);
+  for (let col = 6; col <= 25; col++) columnas.push(col);
+  for (let col = 27; col <= 30; col++) columnas.push(col);
+  return columnas;
+}
+
+/** Filas accesibles (J y K): 2 + 10 + 2 butacas, sin las del medio. */
+function columnasAccesibles(): number[] {
+  return [2, 3, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 28, 29];
+}
+
+/**
+ * Layout completo de la sala. Es la unica fuente de verdad: el mapa de
+ * butacas y la seleccion masiva de prueba salen de aca.
+ */
+export function generarButacas(): Butaca[] {
+  const butacas: Butaca[] = [];
+
+  for (const fila of FILAS) {
+    const tipo = tipoButacaPorFila(fila);
+    const columnas = tipo === 'accesible' ? columnasAccesibles() : columnasNormales();
+
+    for (const columna of columnas) {
+      butacas.push({ codigo: `${fila}${columna}`, fila, columna, tipo });
+    }
+  }
+
+  return butacas;
+}
+
+/** Todas las butacas de la sala, generadas una sola vez. */
+export const BUTACAS: readonly Butaca[] = generarButacas();
+
+/** Total de butacas de la sala (532). */
+export const TOTAL_BUTACAS = BUTACAS.length;
+
+/**
+ * Codigos de las butacas que siguen libres: descuenta las vendidas y las
+ * reservadas por otras personas.
+ */
+export function butacasLibres(
+  vendidas: readonly string[],
+  reservadas: readonly string[] = [],
+): string[] {
+  const ocupadas = new Set<string>([...vendidas, ...reservadas]);
+  return BUTACAS.filter((butaca) => !ocupadas.has(butaca.codigo)).map(
+    (butaca) => butaca.codigo,
+  );
+}
+
 export type EstadoButaca = 'bloqueada' | 'vendida';
 
 /** Fila que devuelve la RPC estado_butacas. */
